@@ -1,0 +1,72 @@
+.estates-hero { padding: 10rem 2rem 5rem; text-align: center; background: linear-gradient(135deg, rgba(58,90,64,0.9), rgba(45,106,90,0.85)); }
+.estates-hero__content { position: relative; z-index: 1; }
+.estates-hero__hindi { font-family: var(--font-hindi); font-size: 1.3rem; color: var(--color-gold-light); letter-spacing: 4px; margin-bottom: 0.5rem; }
+.estates-hero__title { font-family: var(--font-display); font-size: 3.5rem; color: var(--color-cream); margin-bottom: 0.75rem; }
+.estates-hero__subtitle { font-size: 1.05rem; color: rgba(245,237,224,0.7); max-width: 560px; margin: 0 auto; line-height: 1.7; }
+
+.regions-list { display: flex; flex-direction: column; gap: 2rem; }
+
+.region-card {
+  display: flex; gap: 2.5rem; align-items: center;
+  background: var(--color-warm-white); border: 1px solid var(--color-cream-dark);
+  border-radius: var(--radius-xl); padding: 2rem; transition: var(--transition-base);
+}
+.region-card:hover { box-shadow: var(--shadow-medium); border-color: var(--color-gold-light); }
+.region-card--reverse { flex-direction: row-reverse; }
+
+.region-card__visual {
+  width: 160px; height: 160px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--color-teal), var(--color-forest));
+  border-radius: var(--radius-xl); display: flex; align-items: center; justify-content: center;
+}
+.region-card__emoji { font-size: 4rem; }
+
+.region-card__name { font-family: var(--font-display); font-size: 1.6rem; color: var(--color-maroon); margin-bottom: 0.25rem; }
+.region-card__state { font-size: 0.85rem; color: var(--color-teal); margin-bottom: 0.75rem; font-weight: 500; }
+.region-card__desc { font-size: 0.95rem; color: var(--color-ink-muted); line-height: 1.7; margin-bottom: 1rem; }
+
+.region-card__farmer { display: flex; align-items: center; gap: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--color-cream-dark); }
+.region-card__farmer-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--color-saffron), var(--color-gold)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: var(--font-display); }
+.region-card__farmer-name { font-weight: 600; font-size: 0.9rem; }
+.region-card__farmer-gen { font-size: 0.78rem; color: var(--color-ink-muted); }
+
+/* Timeline */
+.process-timeline { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1rem; }
+
+.process-step {
+  text-align: center; position: relative;
+  background: var(--color-cream); border: 1px solid var(--color-cream-dark);
+  border-radius: var(--radius-lg); padding: 1.5rem 1rem;
+  transition: var(--transition-base);
+}
+.process-step:hover { transform: translateY(-4px); box-shadow: var(--shadow-medium); border-color: var(--color-gold-light); }
+
+.process-step__number {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--color-maroon); color: white;
+  font-size: 0.75rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 0.75rem;
+}
+.process-step__emoji { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+.process-step__name { font-family: var(--font-display); font-size: 1rem; color: var(--color-maroon); margin-bottom: 0.35rem; }
+.process-step__desc { font-size: 0.78rem; color: var(--color-ink-muted); line-height: 1.5; }
+
+/* Promise */
+.promise-card {
+  text-align: center; padding: 2rem 1.5rem;
+  background: var(--color-warm-white); border: 1px solid var(--color-cream-dark);
+  border-radius: var(--radius-lg); transition: var(--transition-base);
+}
+.promise-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-medium); border-color: var(--color-teal-light); }
+.promise-card span { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+.promise-card h4 { font-family: var(--font-display); font-size: 1.1rem; color: var(--color-maroon); margin-bottom: 0.4rem; }
+.promise-card p { font-size: 0.85rem; color: var(--color-ink-muted); }
+
+@media (max-width: 1024px) { .process-timeline { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px) {
+  .estates-hero__title { font-size: 2.5rem; } .estates-hero { padding: 8rem 1rem 3rem; }
+  .region-card, .region-card--reverse { flex-direction: column; }
+  .region-card__visual { width: 100%; height: 120px; }
+  .process-timeline { grid-template-columns: repeat(2, 1fr); }
+}

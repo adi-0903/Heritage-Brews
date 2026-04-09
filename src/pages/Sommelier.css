@@ -1,0 +1,82 @@
+.sommelier-hero {
+  padding: 10rem 2rem 5rem;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(74,16,16,0.92), rgba(44,24,16,0.88));
+}
+.sommelier-hero__content { position: relative; z-index: 1; }
+.sommelier-hero__hindi { font-family: var(--font-hindi); font-size: 1.3rem; color: var(--color-gold-light); letter-spacing: 4px; margin-bottom: 0.5rem; }
+.sommelier-hero__title { font-family: var(--font-display); font-size: 3.5rem; color: var(--color-cream); margin-bottom: 0.75rem; }
+.sommelier-hero__subtitle { font-size: 1.05rem; color: rgba(245,237,224,0.7); max-width: 560px; margin: 0 auto; line-height: 1.7; }
+
+.tier-card {
+  background: var(--color-warm-white);
+  border: 2px solid var(--color-cream-dark);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem 2rem;
+  text-align: center;
+  position: relative;
+  transition: var(--transition-base);
+}
+.tier-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-heavy); }
+.tier-card--featured { border-color: var(--color-gold); box-shadow: var(--shadow-gold); transform: scale(1.03); }
+.tier-card--featured:hover { transform: scale(1.03) translateY(-6px); }
+
+.tier-card__badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--color-gold), var(--color-saffron));
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 16px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.tier-card__emoji { font-size: 3rem; display: block; margin-bottom: 1rem; }
+.tier-card__name { font-family: var(--font-display); font-size: 1.6rem; margin-bottom: 0.75rem; }
+.tier-card__price { margin-bottom: 1.5rem; }
+.tier-card__amount { font-family: var(--font-display); font-size: 2.5rem; font-weight: 800; }
+.tier-card__period { font-size: 1rem; color: var(--color-ink-muted); }
+
+.tier-card__features {
+  text-align: left;
+  margin-bottom: 2rem;
+}
+.tier-card__features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  font-size: 0.88rem;
+  color: var(--color-ink-light);
+  border-bottom: 1px solid rgba(232,219,201,0.4);
+}
+.tier-card__features li span { color: var(--color-gold); flex-shrink: 0; }
+
+.box-item {
+  background: var(--color-cream);
+  border: 1px solid var(--color-cream-dark);
+  border-radius: var(--radius-lg);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: var(--transition-base);
+}
+.box-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-medium); border-color: var(--color-gold-light); }
+.box-item__emoji { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+.box-item__label { font-family: var(--font-display); font-size: 0.95rem; color: var(--color-ink-light); }
+
+.sommelier-cta {
+  background: linear-gradient(135deg, var(--color-maroon), var(--color-maroon-dark));
+  padding: 5rem 2rem;
+}
+
+@media (max-width: 768px) {
+  .sommelier-hero__title { font-size: 2.5rem; }
+  .sommelier-hero { padding: 8rem 1rem 3rem; }
+  .tier-card--featured { transform: scale(1); }
+  .tier-card--featured:hover { transform: translateY(-6px); }
+}
