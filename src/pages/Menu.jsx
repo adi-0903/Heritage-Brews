@@ -16,13 +16,80 @@ export default function Menu() {
         try {
             setLoading(true);
             const data = await api.get('catalog/categories/');
-            // Sequester the Curations & Gifts category from the primary menu
-            const filteredData = data.filter(cat => cat.name !== 'Curations & Gifts');
-            setCategories(filteredData);
+            
+            // Historical Menu Fallback - Ensuring the menu is always Royal and Expansive
+            const menuFallbacks = [
+                {
+                    id: 'cat_snacks',
+                    name: 'Savoury Snacks',
+                    icon: 'bakery_dining',
+                    products: [
+                        { id: 'sn_1', name: 'Mathri of the Marwars', price: 299, description: 'Fenugreek-infused flaky crackers, a standard for every merchant caravan.', image: '/images/mathri_snack.png?v=heritage' },
+                        { id: 'sn_2', name: 'Kachori of the Kachwahas', price: 349, description: 'Spiced lentil-filled crisp pastry, once a staple of the Jaipur court.', image: '/images/kachori_kachwahas.png?v=heritage' },
+                        { id: 'sn_3', name: 'Saffron-Salted Cashews', price: 499, description: 'Hand-selected jumbo kernels roasted with premium Kashmiri Saffron.', image: '/images/saffron_cashews.png?v=heritage' },
+                        { id: 'sn_4', name: 'Rajputana Mathania Peanuts', price: 249, description: 'Slow-roasted with sun-dried Rajasthani Mathania chilies for a deep heat.', image: '/images/mathania_peanuts.png?v=heritage' }
+                    ]
+                },
+                {
+                    id: 'cat_sweets',
+                    name: 'Royal Sweets',
+                    icon: 'icecream',
+                    products: [
+                        { id: 'sw_1', name: 'Awadhi Rose Gulab Jamun', price: 399, description: 'Aromatic spheres soaked in damask rose syrup with a pistachio heart.', image: '/images/awadhi_gulab_jamun.png?v=heritage' },
+                        { id: 'sw_2', name: 'Shahi Tukda (Silver Signature)', price: 449, description: 'Saffron-soaked bread pudding finished with edible silver leaf.', image: '/images/shahi_tukda.png?v=heritage' },
+                        { id: 'sw_3', name: 'Mysore Pak (Ghee-Rich Reserve)', price: 399, description: 'Legendary chickpea fudge prepared with 24-month aged clarified butter.', image: '/images/mysore_pak.png?v=heritage' },
+                        { id: 'sw_4', name: 'Banarasi Paan-Infused Malai', price: 549, description: 'Creamy delicacy captured with the cooling essence of fresh betel leaf.', image: '/images/banarasi_paan_malai.png?v=heritage' },
+                        { id: 'sw_5', name: 'Saffron Kesar Peda', price: 349, description: 'Silky fudge with the essence of pure Saffron, stamped with the Royal Seal.', image: '/images/kesar_peda.png?v=heritage' },
+                        { id: 'sw_6', name: 'Silver Leaf Kaju Katli', price: 499, description: 'Diamond-shaped cashew fudge glistening with a layer of pure edible silver.', image: '/images/kaju_katli.png?v=heritage' }
+                    ]
+                }
+            ];
+
+            // Filter out existing DB categories that match our fallbacks to avoid duplicates
+            const dbCategories = data.filter(cat => cat.name !== 'Curations & Gifts');
+            const mergedCategories = [...dbCategories];
+
+            // Merge fallbacks if they don't exist in DB
+            menuFallbacks.forEach(fallback => {
+                const exists = mergedCategories.some(cat => cat.name.toLowerCase().includes(fallback.name.toLowerCase().split(' ')[1]?.toLowerCase() || fallback.name.toLowerCase()));
+                if (!exists) mergedCategories.push(fallback);
+                else {
+                    // Enrich existing categories with missing products
+                    const target = mergedCategories.find(cat => cat.name.toLowerCase().includes(fallback.name.toLowerCase().split(' ')[1]?.toLowerCase() || fallback.name.toLowerCase()));
+                    if (target) {
+                        target.products = [...(target.products || []), ...fallback.products.filter(p => !target.products?.some(tp => tp.name === p.name))];
+                    }
+                }
+            });
+
+            setCategories(mergedCategories);
             setError(null);
         } catch (err) {
             console.error('Menu loading failed:', err);
             setError('The Royal Kitchen is currently preparing. Please try again shortly.');
+            // Even on error, show fallbacks
+            setCategories([
+                {
+                    id: 'cat_snacks',
+                    name: 'Royal Savories',
+                    icon: 'bakery_dining',
+                    products: [
+                        { id: 'sn_1', name: 'Mathri of the Marwars', price: 299, description: 'Fenugreek-infused flaky crackers, a standard for every merchant caravan.', image: '/images/mathri_snack.png?v=heritage' },
+                        { id: 'sn_2', name: 'Kachori of the Kachwahas', price: 349, description: 'Spiced lentil-filled crisp pastry, once a staple of the Jaipur court.', image: '/images/awadhi_biryani.png?v=heritage' },
+                        { id: 'sn_3', name: 'Saffron-Salted Cashews', price: 499, description: 'Hand-selected jumbo kernels roasted with premium Kashmiri Saffron.', image: '/images/bikaneri_bhujia.png?v=heritage' }
+                    ]
+                },
+                {
+                    id: 'cat_sweets',
+                    name: 'Majestic Confections',
+                    icon: 'icecream',
+                    products: [
+                        { id: 'sw_1', name: 'Awadhi Rose Gulab Jamun', price: 399, description: 'Aromatic spheres soaked in damask rose syrup with a pistachio heart.', image: '/images/awadhi_gulab_jamun.png?v=heritage' },
+                        { id: 'sw_2', name: 'Shahi Tukda (Silver Signature)', price: 449, description: 'Saffron-soaked bread pudding finished with edible silver leaf.', image: '/images/shahi_brass_box.png?v=heritage' },
+                        { id: 'sw_3', name: 'Mysore Pak (Ghee-Rich Reserve)', price: 399, description: 'Legendary chickpea fudge prepared with 24-month aged clarified butter.', image: '/images/kesar_peda.png?v=heritage' }
+                    ]
+                }
+            ]);
         } finally {
             setLoading(false);
         }
@@ -46,7 +113,7 @@ export default function Menu() {
                     color: #F4C430;
                 }
                 .indian-pattern-bg {
-                    background-image: url('/images/indian_pattern.png');
+                    background-image: url('/images/indian_pattern.png?v=heritage');
                     background-size: 300px 300px;
                     opacity: 0.03;
                     mix-blend-mode: color-dodge;

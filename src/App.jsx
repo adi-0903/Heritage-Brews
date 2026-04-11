@@ -14,6 +14,7 @@ import Estates from './pages/Estates';
 import Stories from './pages/Stories';
 import Rewards from './pages/Rewards';
 import Checkout from './pages/Checkout';
+import Premium from './pages/Premium';
 import Reservation from './pages/Reservation';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -48,6 +49,7 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/invoice/:orderId" element={<Invoice />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/premium" element={<Premium />} />
             <Route path="/reservation" element={<Reservation />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />

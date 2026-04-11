@@ -61,20 +61,19 @@ class Product(models.Model):
         return self.image_url
 
 
-class SubscriptionPlan(models.Model):
-    """Sommelier subscription tiers: Silver, Shahi Brass."""
+class SommelierCuration(models.Model):
+    """Sommelier curated boxes: Silver, Shahi Brass (One-time purchase)."""
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, blank=True)
     tagline = models.CharField(max_length=200, blank=True, default='')
-    price_monthly = models.DecimalField(max_digits=8, decimal_places=2)
-    features = models.JSONField(default=list)  # ["2x 100g Seasonal Teas", ...]
-    is_premium = models.BooleanField(default=False)
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+    features = models.JSONField(default=list)  # ["1x 250g Rare Estate Blend", ...]
     icon = models.CharField(max_length=50, default='workspace_premium')
     badge_text = models.CharField(max_length=50, blank=True, default='')
     is_active = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ['price_monthly']
+        ordering = ['price']
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -82,7 +81,7 @@ class SubscriptionPlan(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name} — ₹{self.price_monthly}/mo"
+        return f"{self.name} — ₹{self.price}"
 
 
 class GiftHamper(models.Model):

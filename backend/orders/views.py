@@ -11,6 +11,7 @@ from .serializers import (
 )
 from decimal import Decimal
 from catalog.models import Product, GiftHamper
+from memberships.models import MembershipTier
 
 
 def get_or_create_cart(request):
@@ -114,6 +115,8 @@ class OrderListView(APIView):
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
 
+
+
     def post(self, request):
         serializer = PlaceOrderSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -125,28 +128,47 @@ class OrderListView(APIView):
         if passed_items:
             # Create order from items passed in the request body
             for item in passed_items:
-                item_id = item['product']
-                product = Product.objects.filter(id=item_id, is_available=True).first()
-                if product:
-                    cart_items_data.append({
-                        'product': product,
-                        'is_hamper': False,
-                        'name': product.name,
-                        'quantity': int(item['quantity']),
-                        'price': product.price
-                    })
-                else:
-                    hamper = GiftHamper.objects.filter(id=item_id, is_active=True).first()
-                    if hamper:
+                item_id = str(item.get('product', ''))
+                
+                # Check if it's a membership purchase
+                if item_id.startswith('MEMB-'):
+                    slug = item_id.replace('MEMB-', '')
+                    tier = MembershipTier.objects.filter(slug=slug).first()
+                    if tier:
                         cart_items_data.append({
-                            'product': None, # OrderItem product field is Product FK
-                            'is_hamper': True,
-                            'name': hamper.name,
-                            'quantity': int(item['quantity']),
-                            'price': hamper.price
+                            'product': None,
+                            'membership_tier': tier,
+                            'is_hamper': False,
+                            'name': f"{tier.title} Membership",
+                            'quantity': 1,
+                            'price': tier.price
                         })
                     else:
-                        return Response({'error': f'Item with ID {item_id} not found.'}, status=status.HTTP_400_BAD_REQUEST)
+                        return Response({'error': f'Membership tier {slug} not found.'}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    product = Product.objects.filter(id=item_id, is_available=True).first()
+                    if product:
+                        cart_items_data.append({
+                            'product': product,
+                            'membership_tier': None,
+                            'is_hamper': False,
+                            'name': product.name,
+                            'quantity': int(item['quantity']),
+                            'price': product.price
+                        })
+                    else:
+                        hamper = GiftHamper.objects.filter(id=item_id, is_active=True).first()
+                        if hamper:
+                            cart_items_data.append({
+                                'product': None,
+                                'membership_tier': None,
+                                'is_hamper': True,
+                                'name': hamper.name,
+                                'quantity': int(item['quantity']),
+                                'price': hamper.price
+                            })
+                        else:
+                            return Response({'error': f'Item with ID {item_id} not found.'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             # Fallback to backend cart
             try:
@@ -157,6 +179,7 @@ class OrderListView(APIView):
                 for item in db_items:
                     cart_items_data.append({
                         'product': item.product,
+                        'membership_tier': None,
                         'is_hamper': False,
                         'name': item.product.name,
                         'quantity': item.quantity,
@@ -167,7 +190,25 @@ class OrderListView(APIView):
                 return Response({'error': 'Your cart is empty.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Calculate totals from the collected items (using Decimal)
-        subtotal = sum(item['price'] * item['quantity'] for item in cart_items_data)
+        raw_subtotal = sum(item['price'] * item['quantity'] for item in cart_items_data)
+        
+        # Calculate Premium/Lineage Discount
+        discount_amount = Decimal('0.00')
+        active_membership = getattr(request.user.profile, 'active_membership', None)
+        
+        if active_membership:
+            discount_rate = Decimal(str(active_membership.discount_percentage)) / Decimal('100')
+            # Apply to products/hampers, but NOT to the membership tier itself if being purchased
+            discountable_total = sum(
+                item['price'] * item['quantity'] 
+                for item in cart_items_data 
+                if not item.get('membership_tier')
+            )
+            discount_amount = (discountable_total * discount_rate).quantize(Decimal('0.01'))
+
+        # The subtotal stored in the model should be the full price before discount
+        # The total will be (subtotal - discount) + delivery_fee
+        net_subtotal = raw_subtotal - discount_amount
         
         # Check if any item is a gift/hamper for free delivery eligibility
         has_gift_item = any(
@@ -175,10 +216,10 @@ class OrderListView(APIView):
             for item in cart_items_data
         )
         
-        delivery_fee = Decimal('0.00') if (has_gift_item or subtotal >= Decimal('600.00')) else Decimal('50.00')
-        total = subtotal + delivery_fee
+        delivery_fee = Decimal('0.00') if (has_gift_item or net_subtotal >= Decimal('600.00')) else Decimal('50.00')
+        total = net_subtotal + delivery_fee
 
-        # Create Order
+        # Create Order (Initially pending to ensure items are attached before activation signal)
         order = Order.objects.create(
             user=request.user,
             patron_name=data['patron_name'],
@@ -187,22 +228,36 @@ class OrderListView(APIView):
             city=data['city'],
             pincode=data['pincode'],
             special_instructions=data.get('special_instructions', ''),
-            subtotal=subtotal,
+            subtotal=raw_subtotal,
+            discount=discount_amount,
             delivery_fee=delivery_fee,
             total=total,
             payment_method=data['payment_method'],
             payment_status='paid' if data['payment_method'] == 'cod' else 'pending',
+            status='confirmed' if data['payment_method'] == 'cod' else 'placed',
         )
 
         # Create OrderItems (freeze product names/prices)
+        is_membership_purchase = False
         for item in cart_items_data:
+            if item.get('membership_tier'):
+                is_membership_purchase = True
+                
             OrderItem.objects.create(
                 order=order,
-                product=item['product'],
+                product=item.get('product'),
+                membership_tier=item.get('membership_tier'),
                 product_name=item['name'],
                 product_price=item['price'],
                 quantity=item['quantity'],
             )
+
+        # AUTOMATIC LINEAGE ACTIVATION
+        # If it's a membership purchase, we auto-confirm and pay to trigger the activation signal
+        if is_membership_purchase:
+            order.payment_status = 'paid'
+            order.status = 'confirmed'
+            order.save() # This triggers the signal in orders/signals.py
 
         return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
 

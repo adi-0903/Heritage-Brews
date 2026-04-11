@@ -2,10 +2,10 @@ from rest_framework import generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from .models import Category, Product, SubscriptionPlan, GiftHamper
+from .models import Category, Product, SommelierCuration, GiftHamper
 from .serializers import (
     CategorySerializer, ProductListSerializer, ProductDetailSerializer,
-    SubscriptionPlanSerializer, GiftHamperListSerializer, GiftHamperDetailSerializer,
+    SommelierCurationSerializer, GiftHamperListSerializer, GiftHamperDetailSerializer,
 )
 from .filters import ProductFilter, GiftHamperFilter
 
@@ -45,10 +45,10 @@ def featured_products(request):
     return Response(serializer.data)
 
 
-class SubscriptionPlanListView(generics.ListAPIView):
-    """GET /api/catalog/subscriptions/ — List subscription plans."""
-    queryset = SubscriptionPlan.objects.filter(is_active=True)
-    serializer_class = SubscriptionPlanSerializer
+class SommelierCurationListView(generics.ListAPIView):
+    """GET /api/catalog/subscriptions/ — List sommelier curation boxes."""
+    queryset = SommelierCuration.objects.filter(is_active=True)
+    serializer_class = SommelierCurationSerializer
     permission_classes = [AllowAny]
     pagination_class = None
 

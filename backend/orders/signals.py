@@ -30,3 +30,27 @@ def award_tokens_on_delivery(sender, instance, **kwargs):
                     reason=f"Order {instance.order_number} delivered",
                     order=instance,
                 )
+
+
+@receiver(post_save, sender=Order)
+def activate_membership_on_payment(sender, instance, **kwargs):
+    """
+    Automatically activate membership when payment is confirmed.
+    """
+    if instance.payment_status == 'paid' and instance.user:
+        # Check if any item in the order is a membership
+        membership_items = instance.items.filter(membership_tier__isnull=False)
+        
+        if membership_items.exists():
+            # Get the highest level membership from the order
+            highest_membership = membership_items.order_by('-membership_tier__heritage_level').first().membership_tier
+            
+            # Update user profile
+            if hasattr(instance.user, 'profile'):
+                profile = instance.user.profile
+                profile.active_membership = highest_membership
+                profile.save(update_fields=['active_membership'])
+                
+                # In production, you might also want to set an expiry date
+                # profile.membership_expiry = ...
+                # profile.save()

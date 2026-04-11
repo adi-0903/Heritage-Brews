@@ -65,6 +65,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        refreshProfile: fetchUserProfile,
         isAuthenticated: !!user,
     };
 

@@ -246,14 +246,20 @@ export default function Invoice() {
 
                         {/* Financial Ledger Summary */}
                         <div className="flex justify-end mt-8">
-                            <div className="w-64 space-y-3 font-geometric text-[10px] uppercase tracking-widest text-stone-500">
+                            <div className="w-64 space-y-3 font-geometric text-[10px] uppercase tracking-widest text-[#D4AF37]/60">
                                 <div className="flex justify-between border-b border-white/5 pb-1">
-                                    <span>Base Valuation:</span>
+                                    <span className="opacity-50">Subtotal:</span>
                                     <span className="text-white font-bold">₹{order.subtotal}</span>
                                 </div>
+                                {parseFloat(order.discount) > 0 && (
+                                    <div className="flex justify-between border-b border-white/5 pb-1 text-[#D4AF37]">
+                                        <span className="font-bold">Lineage Rebate:</span>
+                                        <span className="font-bold">- ₹{order.discount}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between border-b border-white/5 pb-1">
-                                    <span>Imperial Levy:</span>
-                                    <span className="text-white font-bold">₹{order.delivery_fee}</span>
+                                    <span className="opacity-50">Imperial Levy:</span>
+                                    <span className="text-white font-bold">{order.delivery_fee == 0 ? 'COMPLIMENTARY' : `₹${order.delivery_fee}`}</span>
                                 </div>
                             </div>
                         </div>

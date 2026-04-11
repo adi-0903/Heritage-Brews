@@ -1,16 +1,19 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+from memberships.serializers import MembershipTierSerializer
 from .models import UserProfile
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    active_membership = MembershipTierSerializer(read_only=True)
+
     class Meta:
         model = UserProfile
         fields = [
             'phone', 'avatar', 'default_address', 'default_city',
             'default_pincode', 'tea_tokens', 'loyalty_tier',
-            'next_tier_tokens', 'created_at',
+            'next_tier_tokens', 'active_membership', 'created_at',
         ]
         read_only_fields = ['tea_tokens', 'loyalty_tier', 'next_tier_tokens', 'created_at']
 

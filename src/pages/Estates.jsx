@@ -1,361 +1,550 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../api';
+import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
+
+const API_BASE = "http://localhost:8000/api/weather";
+
+const ESTATES_CONFIG = [
+    {
+        id: 'darjeeling',
+        name: 'Makaibari Estate',
+        location: 'High-Alt Darjeeling',
+        image: `${API_BASE}/archive-image/?file=makaibari_darjeeling_render_v2_1775905953067.png`,
+        desc: '"Guardian of the same 40 acres his great-grandfather cleared in 1888."',
+        history: "Makaibari is a living legend. Founded in 1859, it became the world's first tea estate to be certified Organic in 1988 and Biodynamic in 1993. The estate is a permaculture paradise, where 70% of the land is maintained as a tropical rainforest, fostering a unique microclimate that produces the legendary 'Silver Tips Imperial' plucked only under the full moon.",
+        altitude: "4,500 - 6,000 ft",
+        soil: "Sandy loam / Sub-tropical",
+        notable: "Moonlight Plucking"
+    },
+    {
+        id: 'assam',
+        name: 'Dibrugarh Estate',
+        location: 'Brahmaputra Valley',
+        image: `${API_BASE}/archive-image/?file=dibrugarh_assam_render_1775905900779.png`,
+        desc: '"Specializing in the rare "Golden Tips" and robust malty flushes."',
+        history: "Set in the heart of the Brahmaputra Valley, the Dibrugarh Estate is renowned for its intense, malty character. The rich alluvial soil of the valley floor, combined with extreme humidity and heat, forces the tea leaves to produce a high concentration of polyphenols, resulting in the world-famous 'Assam Strength' favored by master blenders for centuries.",
+        altitude: "300 - 600 ft",
+        soil: "Alluvial Floodplain",
+        notable: "Malty Golden Tips"
+    },
+    {
+        id: 'nilgiri',
+        name: 'Coonoor Estate',
+        location: 'Blue Mountains',
+        image: `${API_BASE}/archive-image/?file=coonoor_nilgiri_render_v2_1775905966904.png`,
+        desc: '"Grown at 8,000 feet, offering a crisp, aromatic profile with notes of citrus."',
+        history: "High in the clouds of the Western Ghats, the Coonoor Estate represents the elegance of the 'Blue Mountains'. The high altitude and cool temperatures slow the growth of the bush, concentrating the essential oils. The result is a 'Winter Frost' tea that is light, fragrant, and almost creamy, with a distinct floral citrus note that is found nowhere else on earth.",
+        altitude: "6,500 - 8,000 ft",
+        soil: "Red Loam / Clay",
+        notable: "High-Alt Citrus"
+    }
+];
 
 export default function Estates() {
-    return (
-        <div className="w-full" dangerouslySetInnerHTML={{ __html: `<style>
-        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
-        
-        /* Dark Indian Royal Heritage Palette */
-        body { background-color: #120e0a; color: #e5e2d8; font-family: 'Noto Serif', serif; }
-        
-        .bg-background { background-color: #120e0a !important; }
-        .bg-surface { background-color: #120e0a !important; }
-        .bg-surface-container-low { background-color: #1c1511 !important; }
-        .bg-surface-container { background-color: #2a201b !important; }
-        
-        .text-on-background { color: #F4C430 !important; }
-        .text-on-surface { color: #e5e2d8 !important; }
-        .text-on-surface-variant { color: #c4b5a2 !important; }
-        
-        .bg-primary { background-color: #890000 !important; }
-        .text-primary { color: #F4C430 !important; }
-        .border-primary { border-color: #F4C430 !important; }
-        .bg-secondary { background-color: #F4C430 !important; }
-        .text-secondary { color: #F4C430 !important; }
-        .border-outline\\/10 { border-color: rgba(244, 196, 48, 0.1) !important; }
-        .border-outline\\/20 { border-color: rgba(244, 196, 48, 0.2) !important; }
-        
-        .indian-pattern-bg {
-            background-image: url('/images/indian_pattern.png');
-            background-size: 300px 300px;
-            opacity: 0.03;
-            mix-blend-mode: color-dodge;
-        }
-
-        .gold-glow { text-shadow: 0 0 30px rgba(244,196,48,0.4); }
-        
-        @keyframes scrollMarquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(calc(-50% - 2rem)); }
-        }
-        .animate-marquee {
-            animation: scrollMarquee 35s linear infinite;
-        }
-        .animate-marquee:hover {
-            animation-play-state: paused;
-        }
-    </style><main class="bg-[#120e0a] relative">
+    const { user } = useAuth();
+    const { addItem, toggleCart } = useCart();
+    const [weather, setWeather] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [override, setOverride] = useState(null);
+    const [selectedEstate, setSelectedEstate] = useState(null);
+    const [showVault, setShowVault] = useState(false);
+    const navigate = useNavigate();
     
-<!-- Full Page Texture -->
-<div class="fixed inset-0 pointer-events-none indian-pattern-bg z-0"></div>
+    // Check for premium membership in the user's registry profile
+    const isPremium = !!user?.profile?.active_membership;
+    const [showPremiumModal, setShowPremiumModal] = useState(false);
 
-<!-- Hero Section -->
-<section class="relative min-h-[920px] overflow-hidden flex items-center justify-center z-10 border-b border-[#F4C430]/20">
-<div class="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] hover:scale-105" data-alt="panoramic cinematic view of misty rolling green tea estates at dawn with majestic traditional heritage mansion" style="background-image: url('/images/majestic_tea_estates.png');">
-<div class="absolute inset-0 bg-black/40 bg-gradient-to-t from-[#120e0a] via-transparent to-black/30"></div>
-</div>
+    useEffect(() => {
+        fetchTelemetry();
+    }, []);
 
-<div class="relative z-10 text-center px-8 py-16 max-w-5xl backdrop-blur-md bg-[#120e0a]/40 border border-[#F4C430]/30 shadow-[0_30px_60px_rgba(0,0,0,0.8)] rounded-3xl mt-24">
-<span class="font-headline tracking-widest uppercase text-[#F4C430] text-xl md:text-2xl mb-6 block border-b border-[#F4C430]/30 pb-4 inline-block px-12">Since 1892</span>
-<h1 class="font-headline text-5xl md:text-7xl lg:text-8xl text-white leading-tight mb-12 drop-shadow-2xl font-bold tracking-tighter gold-glow">
-    From the Estates of India — <br/><span class="italic font-medium text-[#F4C430]">Our Journey, Your Cup.</span>
-</h1>
-<div class="flex flex-col md:flex-row justify-center items-center gap-16 text-[#e5e2d8]">
-<div class="text-center group">
-<p class="font-headline text-5xl font-bold text-[#F4C430] group-hover:scale-110 transition-transform">5</p>
-<p class="font-label uppercase text-sm tracking-widest mt-2 opacity-80">Crown Estates</p>
-</div>
-<div class="w-px h-16 bg-[#F4C430]/30 hidden md:block"></div>
-<div class="text-center group">
-<p class="font-headline text-5xl font-bold text-[#F4C430] group-hover:scale-110 transition-transform">130</p>
-<p class="font-label uppercase text-sm tracking-widest mt-2 opacity-80">Years of Craft</p>
-</div>
-<div class="w-px h-16 bg-[#F4C430]/30 hidden md:block"></div>
-<div class="text-center group">
-<p class="font-headline text-5xl font-bold text-[#F4C430] group-hover:scale-110 transition-transform">100%</p>
-<p class="font-label uppercase text-sm tracking-widest mt-2 opacity-80">Single Origin</p>
-</div>
-</div>
-</div>
-</section>
-<!-- Interactive Map Section (Old World Aesthetic) -->
-<section class="py-24 bg-surface-container-low parchment-texture border-y border-outline/10">
-<div class="max-w-screen-xl mx-auto px-6 lg:px-12 grid lg:grid-cols-2 gap-16 items-center">
-<div class="order-2 lg:order-1 relative">
-<div class="aspect-square bg-surface-container shadow-2xl relative overflow-hidden p-8">
-<img class="w-full h-full object-cover grayscale sepia opacity-80" data-alt="vintage aged parchment map of India with hand-drawn geographical features and ornate maritime illustrations in earth tones" data-location="India" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDy8FebPHxHXQQXF15PSDXfbDZSZg9UN9Yyvc612uLA6GFxsZ6n20nmgQ9AM1nfA4DfC9AYFfef86ZMqAUkDvE_93hiDJNH0e3s64FC2sVE3lDjdzGdMuR0bx5gbUPCYrA9Mfkaq3jkYD2IA_Nly1np3mP141uTQyutx1MAVMW0Ka05Aps-TSUA9mQjB0i8BBYcRLq7A9bt3ilEVeKiazwiAl_saIRX1eid7o0uNMab7gLxVmDJ0ILGa8DAwyAI7W44AtHB44ajgYE"/>
-<!-- Markers -->
-<div class="absolute top-1/4 right-[25%] group cursor-pointer">
-<span class="material-symbols-outlined text-primary text-3xl drop-shadow-md">location_on</span>
-<div class="absolute bottom-full left-1/2 -translate-x-1/2 bg-surface p-2 shadow-lg mb-2 opacity-0 group-hover:opacity-100 transition-opacity border border-outline/20">
-<p class="font-headline text-sm font-bold whitespace-nowrap">Darjeeling</p>
-</div>
-</div>
-<div class="absolute top-[30%] right-[10%] group cursor-pointer">
-<span class="material-symbols-outlined text-primary text-3xl drop-shadow-md">location_on</span>
-</div>
-<div class="absolute bottom-[15%] left-[30%] group cursor-pointer">
-<span class="material-symbols-outlined text-primary text-3xl drop-shadow-md">location_on</span>
-</div>
-</div>
-<!-- Decorative Frame -->
-<div class="absolute -inset-4 border-2 border-secondary/20 -z-10"></div>
-</div>
-<div class="order-1 lg:order-2 space-y-12">
-<div class="space-y-4">
-<h2 class="font-headline text-4xl md:text-5xl text-primary font-bold">The Terroir of the Ancients</h2>
-<p class="text-on-surface-variant leading-relaxed text-lg italic">Each leaf tells the story of the soil it sprang from. From the snowy foothills of the Himalayas to the tropical rains of the Nilgiris.</p>
-</div>
-<div class="space-y-8 h-auto">
-<div class="p-6 bg-surface-container border-l-4 border-primary shadow-lg border border-primary/20">
-<h3 class="font-headline text-2xl text-secondary font-bold mb-2">Darjeeling: The Champagne of Teas</h3>
-<p class="text-on-surface-variant text-sm leading-relaxed">High in the clouds, the tea plants breathe the thin mountain air. The result is a Muscatel flavor profile—floral, delicate, and deeply sophisticated.</p>
-</div>
-<div class="p-6 bg-surface-container-low hover:bg-surface-container transition-colors">
-<h3 class="font-headline text-2xl text-secondary font-bold mb-2">Assam: The Malty Giant</h3>
-<p class="text-on-surface-variant text-sm leading-relaxed">Basking in the Brahmaputra valley's humidity, our Assam bushes yield a robust, full-bodied brew with a rich malty sweetness and deep amber hue.</p>
-</div>
-<div class="p-6 bg-surface-container-low hover:bg-surface-container transition-colors">
-<h3 class="font-headline text-2xl text-secondary font-bold mb-2">Nilgiri: The Blue Mountain Fragrance</h3>
-<p class="text-on-surface-variant text-sm leading-relaxed">Grown at 8,000 feet, Nilgiri tea is exceptionally aromatic, offering a crisp, bright liquor with notes of winter frost and lemon.</p>
-</div>
-</div>
-</div>
-</div>
-</section>
-<!-- Meet Our Farmers -->
-<section class="py-32 bg-surface">
-<div class="max-w-screen-xl mx-auto px-6 lg:px-12">
-<div class="flex flex-col md:flex-row md:items-end justify-between mb-20 gap-8">
-<div class="max-w-2xl">
-<h2 class="font-headline text-4xl md:text-6xl text-on-surface font-bold leading-tight">The Hands Behind <br/><span class="italic font-medium text-primary">The Harvest</span></h2>
-</div>
-<p class="text-on-surface-variant max-w-sm font-body italic">"We do not grow tea; we nurture the memory of our fathers." — Anirudh, 4th Generation Grower.</p>
-</div>
-<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
-<!-- Farmer 1 -->
-<div class="group">
-<div class="relative overflow-hidden aspect-[4/5] mb-6">
-<img class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" data-alt="portrait of an elderly Indian tea farmer with deep-lined face and warm smile standing in a tea field at sunset" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWEGSLg1jriF7YKcHr1yUHAdiWBHe2KFF-YN-JKROzFhB5lJqh35_b_fHGj0JHzTlf3etT0AJoWLIZmuoRo8w7o01eBwjRjZWhjhhgHsv696WTY99PV8W1BxBklZsExXK-fU3W6LPcQhQFDLo0XZDup6tdXzxeIno9ugSnw7Awkp93kwN49c5N7AAIv5CbTkWLECIl4-0dAlaHBIXNS9eRSOU-xvwB9R4M12sPTeE9nqDsXmhAZXe7sVh2GutQ22WHCg6IalOjr7k"/>
-<div class="absolute inset-0 border-[16px] border-surface pointer-events-none"></div>
-<div class="absolute inset-0 border border-outline/20 pointer-events-none"></div>
-</div>
-<h3 class="font-headline text-2xl font-bold text-on-surface mb-1">Anirudh</h3>
-<p class="font-label text-secondary uppercase tracking-widest text-xs mb-4">Makaibari Estate, Darjeeling</p>
-<p class="text-on-surface-variant text-sm leading-relaxed italic">Guardian of the same 40 acres his great-grandfather cleared in 1888. He believes the moon dictates the pluck.</p>
-</div>
-<!-- Farmer 2 -->
-<div class="group mt-8 md:mt-0">
-<div class="relative overflow-hidden aspect-[4/5] mb-6">
-<img class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" data-alt="candid shot of a woman in traditional Indian attire skillfully plucking tea leaves in the morning mist of Assam" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjCu-GdtNxTWZfweVrsc-JXQESdsScvsLp7VpGtkfBD5SbI1uYQL7xd20BSCs-PlzFGYPDz08uTcyUL-7lTpuwUZn38aJIndgTHse6vbhsfk0OSgkgQ-cka3Uqrxo-YWNzAM_pUR8B9HDfEv5WBfqFLtO4EuzwrrrWQipRQX_ksrKc_mfEFNTEzmLl-v5vW3fX95Ou6Idi9uV7tR3h3ltsovhDU-PKfmvpSko3Y-228j3xgxu-xGNCugB8fpWqDSO7CrcnoEjs8BQ"/>
-<div class="absolute inset-0 border-[16px] border-surface pointer-events-none"></div>
-<div class="absolute inset-0 border border-outline/20 pointer-events-none"></div>
-</div>
-<h3 class="font-headline text-2xl font-bold text-on-surface mb-1">Bijoy &amp; Family</h3>
-<p class="font-label text-secondary uppercase tracking-widest text-xs mb-4">Dibrugarh, Assam</p>
-<p class="text-on-surface-variant text-sm leading-relaxed italic">Managing one of the few remaining family-owned estates in Assam, Bijoy specializes in the rare 'Golden Tips'.</p>
-</div>
-<!-- Farmer 3 -->
-<div class="group mt-16 md:mt-0 lg:mt-12">
-<div class="relative overflow-hidden aspect-[4/5] mb-6">
-<img class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" data-alt="Indian man sorting dried tea leaves by hand on a large circular bamboo tray in a sunlit rustic barn" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrdzn31-4ekcobv6dpIykTm1Myat2no6m6lhLKI3aLk9gQLefelawhSE4XdqRCnWTdRcrJifAymHef6FANS2DDkslMP8aUaTISmZ-aKohk0OeDe3XY5j3xQo0jxCFbfH7NEemX5C8EgTq5vqSF6Ly84YEtsAfstxsN-2kV4RI_3C-oJ8v0v2HNWGXOcO_EVoeOn1mk77EAoUlbzMnNg_r9APaAkEIeqiNVYb6xdMLt41hP0PwC-HJ0KGFbFDI9xlFyMjQDOxi_qqA"/>
-<div class="absolute inset-0 border-[16px] border-surface pointer-events-none"></div>
-<div class="absolute inset-0 border border-outline/20 pointer-events-none"></div>
-</div>
-<h3 class="font-headline text-2xl font-bold text-on-surface mb-1">Meera</h3>
-<p class="font-label text-secondary uppercase tracking-widest text-xs mb-4">Coonoor, Nilgiris</p>
-<p class="text-on-surface-variant text-sm leading-relaxed italic">Meera leads a women-led cooperative focusing on sustainable biodynamic farming in the high-altitude 'Blue Mountains'.</p>
-</div>
-</div>
-</div>
-</section>
-<!-- The Art of Chai: Timeline -->
-<section class="py-24 bg-surface-container overflow-hidden">
-<div class="max-w-screen-xl mx-auto px-6 lg:px-12 mb-16 text-center">
-<h2 class="font-headline text-4xl text-primary font-bold">The Alchemy of Six</h2>
-<div class="w-24 h-1 bg-secondary/30 mx-auto mt-6"></div>
-</div>
-<div class="relative overflow-hidden w-full pb-12">
-<div class="flex w-[max-content] animate-marquee gap-16 px-8">
-<!-- Original 6 Items -->
-<div class="flex-none w-[350px] text-center group">
-<div class="relative mb-8">
-<div class="w-32 h-32 mx-auto bg-surface-container-low border border-secondary/20 flex items-center justify-center relative z-10 transition-transform group-hover:scale-110 group-hover:border-secondary/60">
-<span class="material-symbols-outlined text-4xl text-secondary">eco</span>
-</div>
-<div class="absolute top-1/2 left-0 w-full h-[1px] bg-secondary/10 -z-0"></div>
-</div>
-<h4 class="font-headline text-2xl text-secondary font-bold mb-2">1. Plucking</h4>
-<p class="text-on-surface-variant text-sm leading-relaxed">Two leaves and a bud. Only the youngest growth is selected by hand at first light.</p>
-</div>
-<div class="flex-none w-[350px] text-center group">
-<div class="relative mb-8">
-<div class="w-32 h-32 mx-auto bg-surface-container-low border border-secondary/20 flex items-center justify-center relative z-10 transition-transform group-hover:scale-110 group-hover:border-secondary/60">
-<span class="material-symbols-outlined text-4xl text-secondary">wind_power</span>
-</div>
-<div class="absolute top-1/2 left-0 w-full h-[1px] bg-secondary/10 -z-0"></div>
-</div>
-<h4 class="font-headline text-2xl text-secondary font-bold mb-2">2. Withering</h4>
-<p class="text-on-surface-variant text-sm leading-relaxed">Leaves are spread on racks to gently reduce moisture content through natural airflow.</p>
-</div>
-<div class="flex-none w-[350px] text-center group">
-<div class="relative mb-8">
-<div class="w-32 h-32 mx-auto bg-surface-container-low border border-secondary/20 flex items-center justify-center relative z-10 transition-transform group-hover:scale-110 group-hover:border-secondary/60">
-<span class="material-symbols-outlined text-4xl text-secondary">sync</span>
-</div>
-<div class="absolute top-1/2 left-0 w-full h-[1px] bg-secondary/10 -z-0"></div>
-</div>
-<h4 class="font-headline text-2xl text-secondary font-bold mb-2">3. Rolling</h4>
-<p class="text-on-surface-variant text-sm leading-relaxed">Twisting the leaves to break cells and release essential oils, initiating chemical alchemy.</p>
-</div>
-<div class="flex-none w-[350px] text-center group">
-<div class="relative mb-8">
-<div class="w-32 h-32 mx-auto bg-surface-container-low border border-secondary/20 flex items-center justify-center relative z-10 transition-transform group-hover:scale-110 group-hover:border-secondary/60">
-<span class="material-symbols-outlined text-4xl text-secondary">waves</span>
-</div>
-<div class="absolute top-1/2 left-0 w-full h-[1px] bg-secondary/10 -z-0"></div>
-</div>
-<h4 class="font-headline text-2xl text-secondary font-bold mb-2">4. Oxidation</h4>
-<p class="text-on-surface-variant text-sm leading-relaxed">A precision stage where air reacts with the leaves to develop characteristic color and flavor.</p>
-</div>
-<div class="flex-none w-[350px] text-center group">
-<div class="relative mb-8">
-<div class="w-32 h-32 mx-auto bg-surface-container-low border border-secondary/20 flex items-center justify-center relative z-10 transition-transform group-hover:scale-110 group-hover:border-secondary/60">
-<span class="material-symbols-outlined text-4xl text-secondary">fireplace</span>
-</div>
-<div class="absolute top-1/2 left-0 w-full h-[1px] bg-secondary/10 -z-0"></div>
-</div>
-<h4 class="font-headline text-2xl text-secondary font-bold mb-2">5. Drying</h4>
-<p class="text-on-surface-variant text-sm leading-relaxed">Hot air firing arrests oxidation and locks in the final flavor profile for transport.</p>
-</div>
-<div class="flex-none w-[350px] text-center group">
-<div class="relative mb-8">
-<div class="w-32 h-32 mx-auto bg-surface-container-low border border-secondary/20 flex items-center justify-center relative z-10 transition-transform group-hover:scale-110 group-hover:border-secondary/60">
-<span class="material-symbols-outlined text-4xl text-secondary">blender</span>
-</div>
-<div class="absolute top-1/2 left-0 w-full h-[1px] bg-secondary/10 -z-0"></div>
-</div>
-<h4 class="font-headline text-2xl text-secondary font-bold mb-2">6. Blending</h4>
-<p class="text-on-surface-variant text-sm leading-relaxed">The Master Taster curates the harvest, ensuring every cup meets our legacy of excellence.</p>
-</div>
+    const fetchTelemetry = async () => {
+        try {
+            const data = await api.get('weather/telemetry/');
+            setWeather(data.estates || {});
+        } catch (error) {
+            console.error('Failed to fetch archival telemetry:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-<!-- Duplicated 6 Items for Seamless Marquee Loop -->
-<div class="flex-none w-[350px] text-center group">
-<div class="relative mb-8">
-<div class="w-32 h-32 mx-auto bg-surface-container-low border border-secondary/20 flex items-center justify-center relative z-10 transition-transform group-hover:scale-110 group-hover:border-secondary/60">
-<span class="material-symbols-outlined text-4xl text-secondary">eco</span>
-</div>
-<div class="absolute top-1/2 left-0 w-full h-[1px] bg-secondary/10 -z-0"></div>
-</div>
-<h4 class="font-headline text-2xl text-secondary font-bold mb-2">1. Plucking</h4>
-<p class="text-on-surface-variant text-sm leading-relaxed">Two leaves and a bud. Only the youngest growth is selected by hand at first light.</p>
-</div>
-<div class="flex-none w-[350px] text-center group">
-<div class="relative mb-8">
-<div class="w-32 h-32 mx-auto bg-surface-container-low border border-secondary/20 flex items-center justify-center relative z-10 transition-transform group-hover:scale-110 group-hover:border-secondary/60">
-<span class="material-symbols-outlined text-4xl text-secondary">wind_power</span>
-</div>
-<div class="absolute top-1/2 left-0 w-full h-[1px] bg-secondary/10 -z-0"></div>
-</div>
-<h4 class="font-headline text-2xl text-secondary font-bold mb-2">2. Withering</h4>
-<p class="text-on-surface-variant text-sm leading-relaxed">Leaves are spread on racks to gently reduce moisture content through natural airflow.</p>
-</div>
-<div class="flex-none w-[350px] text-center group">
-<div class="relative mb-8">
-<div class="w-32 h-32 mx-auto bg-surface-container-low border border-secondary/20 flex items-center justify-center relative z-10 transition-transform group-hover:scale-110 group-hover:border-secondary/60">
-<span class="material-symbols-outlined text-4xl text-secondary">sync</span>
-</div>
-<div class="absolute top-1/2 left-0 w-full h-[1px] bg-secondary/10 -z-0"></div>
-</div>
-<h4 class="font-headline text-2xl text-secondary font-bold mb-2">3. Rolling</h4>
-<p class="text-on-surface-variant text-sm leading-relaxed">Twisting the leaves to break cells and release essential oils, initiating chemical alchemy.</p>
-</div>
-<div class="flex-none w-[350px] text-center group">
-<div class="relative mb-8">
-<div class="w-32 h-32 mx-auto bg-surface-container-low border border-secondary/20 flex items-center justify-center relative z-10 transition-transform group-hover:scale-110 group-hover:border-secondary/60">
-<span class="material-symbols-outlined text-4xl text-secondary">waves</span>
-</div>
-<div class="absolute top-1/2 left-0 w-full h-[1px] bg-secondary/10 -z-0"></div>
-</div>
-<h4 class="font-headline text-2xl text-secondary font-bold mb-2">4. Oxidation</h4>
-<p class="text-on-surface-variant text-sm leading-relaxed">A precision stage where air reacts with the leaves to develop characteristic color and flavor.</p>
-</div>
-<div class="flex-none w-[350px] text-center group">
-<div class="relative mb-8">
-<div class="w-32 h-32 mx-auto bg-surface-container-low border border-secondary/20 flex items-center justify-center relative z-10 transition-transform group-hover:scale-110 group-hover:border-secondary/60">
-<span class="material-symbols-outlined text-4xl text-secondary">fireplace</span>
-</div>
-<div class="absolute top-1/2 left-0 w-full h-[1px] bg-secondary/10 -z-0"></div>
-</div>
-<h4 class="font-headline text-2xl text-secondary font-bold mb-2">5. Drying</h4>
-<p class="text-on-surface-variant text-sm leading-relaxed">Hot air firing arrests oxidation and locks in the final flavor profile for transport.</p>
-</div>
-<div class="flex-none w-[350px] text-center group">
-<div class="relative mb-8">
-<div class="w-32 h-32 mx-auto bg-surface-container-low border border-secondary/20 flex items-center justify-center relative z-10 transition-transform group-hover:scale-110 group-hover:border-secondary/60">
-<span class="material-symbols-outlined text-4xl text-secondary">blender</span>
-</div>
-<div class="absolute top-1/2 left-0 w-full h-[1px] bg-secondary/10 -z-0"></div>
-</div>
-<h4 class="font-headline text-2xl text-secondary font-bold mb-2">6. Blending</h4>
-<p class="text-on-surface-variant text-sm leading-relaxed">The Master Taster curates the harvest, ensuring every cup meets our legacy of excellence.</p>
-</div>
-</div>
-</div>
-</section>
-<!-- Our Promise (Ethical Sourcing) -->
-<section class="relative py-32 bg-primary parchment-texture overflow-hidden">
-<div class="absolute inset-0 opacity-10 flex flex-wrap gap-4 overflow-hidden pointer-events-none">
-<div class="mughal-pattern w-64 h-64 text-surface"></div>
-<div class="mughal-pattern w-64 h-64 text-surface translate-y-32"></div>
-<div class="mughal-pattern w-64 h-64 text-surface"></div>
-<div class="mughal-pattern w-64 h-64 text-surface translate-y-32"></div>
-</div>
-<div class="max-w-screen-xl mx-auto px-6 lg:px-12 relative z-10">
-<div class="bg-surface p-12 lg:p-24 shadow-2xl flex flex-col lg:flex-row items-center gap-16">
-<div class="lg:w-1/2">
-<img class="w-full aspect-square object-cover" data-alt="close-up of hands cupping freshly harvested loose tea leaves against a rustic wood background with warm lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeNLa8RcFJnoCdY7ECa3_lCMD8xQJt6vfh79_kYvTqucgkfE1hNDRpSV74V_cBfnFj6YCTtdWhFXAV5eiMesOWPsetFXJ2xYpX3iqh-fGH9IXCI3w9gfrwAYYRg3-i65hfKR9Hj6404IC_Qhj5dj2rbEymqEruNkB4apBXabk5Sq95DmS9eDfc3D7J33183K3k6Qew0BkrccJtv2Qn-KCKJvmCTixikOOevlv_RNisWp-t96ww7xQbfkcZwtEoIUYPey0s4d9MIyQ"/>
-</div>
-<div class="lg:w-1/2 space-y-8">
-<h2 class="font-headline text-4xl md:text-5xl text-primary font-bold">The Heritage Promise</h2>
-<div class="space-y-6">
-<div class="flex gap-6">
-<span class="material-symbols-outlined text-secondary text-4xl" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
-<div>
-<h5 class="font-headline text-xl font-bold mb-1">Direct Partnerships</h5>
-<p class="text-on-surface-variant text-sm">We bypass traditional auction houses to pay our farmers 40% above market rates directly.</p>
-</div>
-</div>
-<div class="flex gap-6">
-<span class="material-symbols-outlined text-secondary text-4xl" style="font-variation-settings: 'FILL' 1;">diversity_2</span>
-<div>
-<h5 class="font-headline text-xl font-bold mb-1">Social Upliftment</h5>
-<p class="text-on-surface-variant text-sm">Investing in estate clinics and schools for the generational wellbeing of our communities.</p>
-</div>
-</div>
-<div class="flex gap-6">
-<span class="material-symbols-outlined text-secondary text-4xl" style="font-variation-settings: 'FILL' 1;">compost</span>
-<div>
-<h5 class="font-headline text-xl font-bold mb-1">Regenerative Craft</h5>
-<p class="text-on-surface-variant text-sm">Working with the Earth, not against it. 70% of our estates are now fully organic certified.</p>
-</div>
-</div>
-</div>
-<button class="bg-primary hover:bg-on-primary-fixed-variant text-white px-8 py-4 font-label uppercase tracking-widest text-sm transition-all shadow-xl">
-                            Read Our Sustainability Report
-                        </button>
-</div>
-</div>
-</div>
-</section>
-<!-- CTA Section -->
-<section class="py-24 text-center">
-<h3 class="font-headline text-3xl md:text-4xl italic text-on-surface mb-12">Taste the heritage for yourself.</h3>
-<div class="flex flex-col md:flex-row justify-center gap-6">
-<a class="inline-block border-2 border-primary text-primary px-12 py-4 font-label uppercase tracking-widest font-bold hover:bg-primary hover:text-white transition-all" href="#">Shop Single Estate</a>
-<a class="inline-block border-2 border-secondary text-secondary px-12 py-4 font-label uppercase tracking-widest font-bold hover:bg-secondary hover:text-white transition-all" href="#">Book a Tasting</a>
-</div>
-</section>
-</main>` }} />
+    const getAtmosphereClass = (condition) => {
+        const cond = override || condition || '';
+        const c = cond.toLowerCase();
+        if (c.includes('rain') || c.includes('drizzle')) return 'atmosphere-misty has-rain';
+        if (c.includes('cloud')) return 'atmosphere-overcast has-mist';
+        if (c.includes('clear')) return 'atmosphere-golden';
+        return '';
+    };
+
+    const vaultProducts = [
+        {
+            id: 'makaibari_gold',
+            name: 'Makaibari "First Light"',
+            estate: 'Darjeeling',
+            desc: 'A ethereal First Flush harvested at dawn. Notes of muscatel and mountain mist.',
+            price: 4500,
+            image: `${API_BASE}/archive-image/?file=makaibari_first_flush_macro_1775918544000_1775918704957.png`,
+            dna: { elevation: '4,500ft', soil: 'Himalayan Loam', oxid: '15%' },
+            archival: {
+                batch: 'HB-MK-24-001',
+                harvest: 'April 04, 2024',
+                luminosity: 'Waning Crescent',
+                sommelier: 'Exceptionally light cup. Hints of damp pine and wild honey.'
+            }
+        },
+        {
+            id: 'moonlight_imperial',
+            name: 'Moonlight Imperial',
+            estate: 'Darjeeling',
+            desc: 'Ethereal Silver Needles plucked only under a full moon. The pinnacle of white tea.',
+            price: 8500,
+            image: `${API_BASE}/archive-image/?file=moonlight_imperial_white_macro_1775919340083.png`,
+            dna: { elevation: '6,800ft', soil: 'Mica-heavy', oxid: '5%' },
+            archival: {
+                batch: 'HB-MK-24-MOON',
+                harvest: 'May 23, 2024',
+                luminosity: 'Full Moon',
+                sommelier: 'Cool, crystalline body. Notes of jasmine and night-blooming cereus.'
+            }
+        },
+        {
+            id: 'dibrugarh_tips',
+            name: 'Brahmaputra Gold',
+            estate: 'Assam',
+            desc: 'Rare Golden Tips with a robust, malty heart. The physical weight of the valley.',
+            price: 3200,
+            image: `${API_BASE}/archive-image/?file=dibrugarh_golden_tips_macro_1775918544002_1775918734056.png`,
+            dna: { elevation: '150ft', soil: 'River Alluvial', oxid: '95%' },
+            archival: {
+                batch: 'HB-DB-24-V92',
+                harvest: 'May 12, 2024',
+                luminosity: 'Full Moon',
+                sommelier: 'Thick, jammy body with dark chocolate and malt finish.'
+            }
+        },
+        {
+            id: 'ancestral_smoke',
+            name: 'Ancestral Smoke',
+            estate: 'Assam',
+            desc: 'Wood-smoked black tea using Himalayan cedar. An ancient, robust flavor profile.',
+            price: 5200,
+            image: `${API_BASE}/archive-image/?file=ancestral_smoke_assam_macro_1775919355456.png`,
+            dna: { elevation: '200ft', soil: 'Iron-rich', oxid: '100%' },
+            archival: {
+                batch: 'HB-DB-24-SMK',
+                harvest: 'June 02, 2024',
+                luminosity: 'New Moon',
+                sommelier: 'Smoky, leathery notes with an undertone of sweet molasses and cedar.'
+            }
+        },
+        {
+            id: 'coonoor_frost',
+            name: 'Blue Mountain Frost',
+            estate: 'Nilgiri',
+            desc: 'A crystalline winter harvest. Crisp, aromatic, and steeped in high-alt history.',
+            price: 3800,
+            image: `${API_BASE}/archive-image/?file=coonoor_frost_tea_macro_1775918544004_1775918760868.png`,
+            dna: { elevation: '8,000ft', soil: 'Black Peat', oxid: '40%' },
+            archival: {
+                batch: 'HB-CN-24-F04',
+                harvest: 'January 20, 2024',
+                luminosity: 'Waxing Gibbous',
+                sommelier: 'Floral citrus with a creamy mouthfeel. Bracingly crisp.'
+            }
+        },
+        {
+            id: 'emerald_frost',
+            name: 'Emerald Frost',
+            estate: 'Nilgiri',
+            desc: 'Vibrant winter green tea needles. Cold-processed for absolute clarity.',
+            price: 4100,
+            image: `${API_BASE}/archive-image/?file=emerald_frost_nilgiri_macro_1775919373586.png`,
+            dna: { elevation: '7,500ft', soil: 'Clay-slate', oxid: '0%' },
+            archival: {
+                batch: 'HB-CN-24-ICE',
+                harvest: 'February 15, 2024',
+                luminosity: 'Waxing Gibbous',
+                sommelier: 'Grass-fresh, with notes of cucumber and sweet mountain water.'
+            }
+        }
+    ];
+
+    const activeMembership = user?.profile?.active_membership;
+    const calculateLineagePrice = (originalPrice) => {
+        if (!activeMembership || !activeMembership.discount_percentage) return originalPrice;
+        const discount = (originalPrice * activeMembership.discount_percentage) / 100;
+        return originalPrice - discount;
+    };
+
+    const handleAcquire = (product) => {
+        if (!isPremium) {
+            setShowPremiumModal(true);
+        } else {
+            addItem({
+                id: `vault_${product.id}`,
+                name: product.name,
+                price: product.price,
+                image: product.image,
+                category: 'Vault Archive'
+            });
+            setShowVault(false);
+        }
+    };
+
+    const RegistrationGate = () => (
+        <div className={`fixed inset-0 z-[300] flex items-center justify-center transition-all duration-700 ${showPremiumModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+            <div className="absolute inset-0 bg-[#0d0a08]/95 backdrop-blur-2xl" onClick={() => setShowPremiumModal(false)}></div>
+            <div className="relative w-full max-w-2xl bg-[#1a1510] border-2 border-[#F4C430]/30 p-16 text-center shadow-[0_0_100px_rgba(244,196,48,0.1)]">
+                <div className="flex justify-center mb-10">
+                    <div className="w-24 h-24 rounded-full border border-[#F4C430]/50 flex items-center justify-center text-[#F4C430] animate-pulse">
+                        <span className="material-symbols-outlined text-6xl">lock_open</span>
+                    </div>
+                </div>
+                <h2 className="font-headline text-5xl text-white uppercase mb-6">Archival Access Restricted</h2>
+                <p className="font-serif text-[#dcd4c3] text-xl italic mb-12 opacity-80">
+                    Proprietary specimens from the Heritage Brews vault are reserved for **Premium Grandmasters** only. Your current lineage does not have the clearance for this acquisition.
+                </p>
+                <div className="space-y-6">
+                    <button 
+                        onClick={() => navigate('/premium')}
+                        className="w-full py-7 bg-[#F4C430] text-[#120e0a] font-label uppercase text-sm tracking-[0.5em] font-black hover:bg-white transition-all shadow-xl"
+                    >
+                        Elevate to Premium Mastery
+                    </button>
+                    <button 
+                        onClick={() => setShowPremiumModal(false)}
+                        className="w-full py-5 border border-[#F4C430]/20 text-[#F4C430]/60 font-label uppercase text-xs tracking-[0.3em] hover:bg-white/5 transition-all"
+                    >
+                        Return to Gallery
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+
+    const AcquisitionVault = () => (
+        <div className={`fixed inset-0 z-[200] transition-all duration-1000 ${showVault ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+            <div className="absolute inset-0 bg-[#0d0a08]/98 backdrop-blur-3xl"></div>
+            
+            {/* Structural Telemetry Sidebar */}
+            <div className="absolute left-0 top-0 bottom-0 w-20 border-r border-[#F4C430]/10 flex flex-col items-center py-10 gap-16 z-20 overflow-hidden hidden md:flex">
+                <span className="font-label text-[#F4C430] text-[12px] uppercase vertical-text tracking-[0.8em] opacity-30">ARCHIVAL_SIGNAL_STABLE</span>
+                <div className="flex flex-col gap-4">
+                    {[1,2,3,4,5].map(i => <div key={i} className="w-[1px] h-8 bg-gradient-to-b from-[#F4C430]/50 to-transparent"></div>)}
+                </div>
+            </div>
+
+            <div className="relative z-10 pl-20 pr-10 py-12 flex justify-between items-center border-b border-[#F4C430]/10">
+                <div className="flex flex-col">
+                    <div className="flex items-center gap-3 mb-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#F4C430] animate-pulse shadow-[0_0_15px_#F4C430]"></span>
+                        <span className="font-label text-[#F4C430] text-[13px] tracking-[0.5em] uppercase font-black">Limited Release Vault</span>
+                    </div>
+                    <div className="flex items-center gap-6">
+                        <h2 className="font-headline text-5xl text-white tracking-tighter uppercase">The Acquisition Portal</h2>
+                        {isPremium && (
+                            <span className="px-4 py-1.5 border border-green-500/50 text-green-500 font-label uppercase text-[10px] tracking-widest rounded-full animate-pulse">Premium Gene-Linked</span>
+                        )}
+                    </div>
+                </div>
+                <button 
+                    onClick={() => setShowVault(false)}
+                    className="w-20 h-20 rounded-full border border-[#F4C430]/20 flex items-center justify-center text-[#F4C430] hover:bg-[#F4C430] hover:text-[#120e0a] transition-all duration-500 group"
+                >
+                    <span className="material-symbols-outlined text-3xl group-hover:rotate-90 transition-transform">close</span>
+                </button>
+            </div>
+
+            <div className="relative z-10 h-[calc(100vh-140px)] overflow-y-auto pl-20 pr-10 py-16">
+                <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-16">
+                    {vaultProducts.map((product) => (
+                        <div key={product.id} className="group relative bg-[#1a1510]/40 border border-[#F4C430]/5 hover:border-[#F4C430]/30 transition-all duration-700 overflow-hidden p-10 flex flex-col">
+                            {/* Technical Header */}
+                            <div className="flex justify-between items-start mb-8 font-mono text-[12px] text-[#F4C430]/60 uppercase tracking-widest">
+                                <span>Batch: {product.archival.batch}</span>
+                                <span className={`flex items-center gap-2 ${isPremium ? 'text-green-500' : 'text-[#F4C430]'}`}>
+                                    <span className="material-symbols-outlined text-[14px]">{isPremium ? 'verified' : 'security'}</span>
+                                    {isPremium ? 'Authorized' : 'Locked'}
+                                </span>
+                            </div>
+
+                            <div className="aspect-[4/5] mb-12 overflow-hidden relative border border-[#F4C430]/10 bg-black">
+                                <img src={product.image} className="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-[2000ms] group-hover:scale-110" alt={product.name} />
+                                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#1a1510] to-transparent z-10"></div>
+                                <div className="absolute top-8 right-8 z-20">
+                                    <div className="bg-[#120e0a]/80 border border-[#F4C430]/30 text-[#F4C430] px-5 py-2 font-black text-[10px] uppercase tracking-widest shadow-2xl backdrop-blur-md flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#F4C430] animate-pulse"></span>
+                                        Premium Exclusive
+                                    </div>
+                                </div>
+                                
+                                <div className="absolute bottom-8 left-0 right-0 z-20 flex justify-center px-4">
+                                    <div className="inline-block whitespace-nowrap bg-[#120e0a]/90 px-4 py-2.5 border border-[#F4C430]/40 shadow-2xl backdrop-blur-md">
+                                        <span className="text-[12px] text-[#F4C430] tracking-[0.2em] font-black uppercase text-center block leading-none">
+                                            {product.estate} HALLMARK
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-8 flex-grow">
+                                <h3 className="font-headline text-4xl text-white uppercase tracking-tight">{product.name}</h3>
+                                
+                                <div className="p-6 bg-white/5 border-l-4 border-[#F4C430]/40 italic text-[14px] text-[#dcd4c3] opacity-90 leading-relaxed font-serif min-h-[80px]">
+                                    "{product.archival.sommelier}"
+                                </div>
+
+                                <div className="py-8 border-y border-[#F4C430]/10 space-y-6">
+                                    <div className="flex justify-between items-center text-[12px] tracking-widest text-[#F4C430]/60 uppercase font-black">
+                                        <span>Terroir DNA Spectrum</span>
+                                        <span className="text-[#F4C430] flex items-center gap-3">
+                                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                            Synchronized
+                                        </span>
+                                    </div>
+                                    
+                                    <div className="flex flex-col gap-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="flex flex-col gap-2 p-4 bg-[#120e0a]/50 border border-white/5">
+                                                <span className="text-[10px] text-[#F4C430]/50 uppercase tracking-widest font-black">Elevation</span>
+                                                <span className="text-[15px] text-white font-mono font-bold">{product.dna.elevation}</span>
+                                            </div>
+                                            <div className="flex flex-col gap-2 p-4 bg-[#120e0a]/50 border border-white/5">
+                                                <span className="text-[10px] text-[#F4C430]/50 uppercase tracking-widest font-black">Oxid. Curve</span>
+                                                <span className="text-[15px] text-white font-mono font-bold">{product.dna.oxid}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-2 p-4 bg-[#120e0a]/50 border border-white/5">
+                                            <span className="text-[10px] text-[#F4C430]/50 uppercase tracking-widest font-black">Harvest Moon Phase</span>
+                                            <span className="text-[15px] text-white font-mono font-bold">{product.archival.luminosity}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col gap-8 pt-6">
+                                    <div className="flex justify-between items-end">
+                                        <div className="flex flex-col">
+                                            <span className="text-[12px] text-[#F4C430]/50 uppercase tracking-[0.2em] font-black mb-1">Legacy Value</span>
+                                            <div className="flex items-baseline gap-3">
+                                                {activeMembership && activeMembership.discount_percentage ? (
+                                                    <div className="flex flex-col">
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-xl text-[#dcd4c3]/30 line-through font-serif italic">₹{product.price?.toLocaleString()}</span>
+                                                            <span className="text-[10px] text-[#F4C430] font-black tracking-widest bg-[#F4C430]/10 px-2 py-0.5 border border-[#F4C430]/20">-{activeMembership.discount_percentage}% LINEAGE REBATE</span>
+                                                        </div>
+                                                        <span className="text-5xl text-[#F4C430] font-serif tracking-tight">₹{calculateLineagePrice(product.price).toLocaleString()}</span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-4xl text-white font-serif tracking-tight">₹{product.price?.toLocaleString()}</span>
+                                                )}
+                                                <span className="text-[12px] text-[#dcd4c3]/40 uppercase font-black">/ PROCUREMENT</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={() => handleAcquire(product)}
+                                        className={`group/buy relative w-full py-7 font-label uppercase text-[13px] tracking-[0.4em] font-black overflow-hidden transition-all shadow-[0_15px_30px_rgba(244,196,48,0.2)] ${
+                                            isPremium 
+                                            ? 'bg-[#F4C430] text-[#120e0a] hover:bg-white' 
+                                            : 'bg-transparent border border-[#F4C430]/40 text-[#F4C430] hover:bg-[#F4C430]/10'
+                                        }`}
+                                    >
+                                        <div className="relative z-10 flex items-center justify-center gap-4">
+                                            {!isPremium && <span className="material-symbols-outlined text-[18px]">lock</span>}
+                                            {isPremium ? 'Acquire for Archive' : 'Premium Required'}
+                                        </div>
+                                        {isPremium && <span className="absolute right-8 top-1/2 -translate-y-1/2 opacity-0 group-hover/buy:opacity-100 transition-all font-black text-2xl">→</span>}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <style>{`
+                    .vertical-text { writing-mode: vertical-rl; transform: rotate(180deg); }
+                `}</style>
+            </div>
+        </div>
+    );
+
+    return (
+        <main className="bg-[#120e0a] text-[#fcf9ee] font-serif relative overflow-hidden min-h-screen">
+            <AcquisitionVault />
+            <RegistrationGate />
+            <style>{`
+                .material-symbols-outlined { font-variation-settings: 'FILL' 1, 'wght' 300; }
+                .indian-pattern-bg {
+                    background-image: url('/images/indian_pattern.png');
+                    background-size: 300px 300px;
+                    opacity: 0.03;
+                    mix-blend-mode: color-dodge;
+                }
+                .gold-glow { text-shadow: 0 0 30px rgba(244,196,48,0.4); }
+                
+                .atmosphere-misty { filter: saturate(0.7) contrast(0.9) brightness(0.9); transition: all 2s ease; }
+                .has-rain::before {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    background-image: 
+                        linear-gradient(105deg, transparent 48%, rgba(255,255,255,0.15) 50%, transparent 52%),
+                        linear-gradient(105deg, transparent 48%, rgba(255,255,255,0.08) 50%, transparent 52%);
+                    background-size: 60px 200px, 110px 300px;
+                    animation: rain-diagonal 0.8s linear infinite;
+                    z-index: 5;
+                    pointer-events: none;
+                    opacity: 0.7;
+                }
+                @keyframes rain-diagonal {
+                    0% { background-position: 0 0, 0 0; }
+                    100% { background-position: 80px 800px, -40px 600px; }
+                }
+
+                .has-mist::after {
+                    content: '';
+                    position: absolute;
+                    inset: -100%;
+                    background: radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 60%);
+                    animation: archival-mist 20s ease-in-out infinite alternate;
+                    z-index: 4;
+                    pointer-events: none;
+                }
+                @keyframes archival-mist {
+                    0% { transform: translate(-10%, -10%) scale(1); }
+                    100% { transform: translate(10%, 10%) scale(1.2); }
+                }
+
+                .animate-signal { animation: pulse-signal 2s infinite ease-in-out; }
+            `}</style>
+
+            <div className="fixed inset-0 pointer-events-none indian-pattern-bg"></div>
+
+            {/* Cinematic Header */}
+            <header className="relative pt-32 pb-48 text-center px-6 overflow-hidden">
+                <div className="max-w-4xl mx-auto relative z-10">
+                    <div className="mb-12 inline-flex items-center gap-6">
+                        <div className="w-16 h-[1px] bg-gradient-to-r from-transparent to-[#F4C430]"></div>
+                        <span className="font-label text-sm text-[#F4C430] uppercase tracking-[0.8em] font-black">Archive Series</span>
+                        <div className="w-16 h-[1px] bg-gradient-to-l from-transparent to-[#F4C430]"></div>
+                    </div>
+                    <h1 className="font-headline text-8xl md:text-[10rem] text-white uppercase tracking-tighter leading-[0.8] mb-12 gold-glow">
+                        <span className="block italic font-light text-5xl md:text-7xl mb-4 tracking-normal lowercase">the</span>
+                        ESTATES
+                    </h1>
+                    <p className="font-serif text-[#dcd4c3] text-xl md:text-3xl italic opacity-80 max-w-2xl mx-auto border-t border-b border-[#F4C430]/20 py-8">
+                        "Visualizing the atmospheric weight of history."
+                    </p>
+                </div>
+            </header>
+
+            {/* Estates Grid */}
+            <section className="max-w-[1600px] mx-auto px-10 pb-48 relative z-10">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-24">
+                    {ESTATES_CONFIG.map((estate) => {
+                        const status = weather[estate.id] || { temp: '--', condition: 'Synk...', is_live: false };
+                        const atmosphere = getAtmosphereClass(status.condition);
+                        
+                        return (
+                            <div key={estate.id} className="group flex flex-col items-center">
+                                <div className={`relative w-full aspect-[4/5] overflow-hidden border border-[#F4C430]/10 bg-[#161210] transition-all duration-[2000ms] group-hover:border-[#F4C430]/40 shadow-2xl ${atmosphere}`}>
+                                    <img src={estate.image} className="w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-[1500ms] group-hover:scale-105" alt={estate.name} />
+                                    
+                                    <div className="absolute top-6 left-6 flex items-center gap-3 px-6 py-3 bg-[#120e0a]/90 backdrop-blur-md border border-[#F4C430]/20 z-30">
+                                        <div className={`w-3 h-3 rounded-full ${override || status.is_live ? 'bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.8)]' : 'bg-[#F4C430]'} animate-signal`}></div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] uppercase tracking-[0.2em] text-[#F4C430] font-black">{override ? 'Debug Mode' : (status.is_live ? 'Live Signal' : 'Archival Feed')}</span>
+                                            <span className="text-sm text-white font-bold tracking-tight">
+                                                {override ? override.toUpperCase() : (status.condition || 'SYNK...')} • {status.temp || '--'}°C
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="absolute bottom-10 left-10 right-10 z-20">
+                                        <span className="text-[#F4C430] text-xs uppercase tracking-[0.5em] font-black block mb-4">{estate.location}</span>
+                                        <h3 className="font-headline text-4xl text-white uppercase tracking-wider leading-tight">{estate.name}</h3>
+                                    </div>
+                                </div>
+
+                                <div className="mt-12 text-center px-4">
+                                    <p className="font-serif text-[#dcd4c3] text-xl italic opacity-85 mb-10 max-w-[320px] mx-auto leading-relaxed">
+                                        {estate.desc}
+                                    </p>
+                                    <button 
+                                        onClick={() => setSelectedEstate(estate)}
+                                        className="inline-flex items-center gap-4 text-[#F4C430] font-label uppercase text-xs tracking-[0.4em] font-black group/btn"
+                                    >
+                                        Explore the Terroir 
+                                        <span className="material-symbols-outlined text-[18px] group-hover/btn:translate-x-2 transition-transform">arrow_right_alt</span>
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </section>
+
+            {/* Cinematic Library Backdrop & Final CTA */}
+            <section className="relative py-48 overflow-hidden bg-[#0d0a08]">
+                <div className="absolute inset-0 z-0">
+                    <img src={`${API_BASE}/archive-image/?file=cinematic_library_background.png`} className="w-full h-full object-cover brightness-[0.2] saturate-[0.6] scale-105" alt="Archival Background" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#0d0a08] via-transparent to-[#120e0a]"></div>
+                </div>
+
+                <div className="max-w-6xl mx-auto px-6 relative z-10 space-y-32">
+                    <div className="relative p-10 md:p-24 bg-[#1a1510]/80 backdrop-blur-2xl border border-[#F4C430]/10 shadow-[0_60px_120px_rgba(0,0,0,0.95)] overflow-hidden">
+                        <div className="text-center relative z-20">
+                            <h3 className="font-headline text-5xl md:text-7xl text-white uppercase mb-12">
+                                <span className="block mb-2">Preserving the</span>
+                                <span className="text-[#F4C430] italic font-light">Spirit of the Terrain</span>
+                            </h3>
+                            <p className="font-serif text-[#dcd4c3] text-xl md:text-2xl italic leading-relaxed opacity-90 max-w-3xl mx-auto">
+                                Our telemetry system honors the delicate balance of nature. When the monsoon hit Darjeeling last June, our patrons watched the archive darken in solidarity with the harvest.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="text-center py-20">
+                        <h3 className="font-headline text-4xl md:text-6xl italic text-white mb-16 opacity-90 gold-glow">Taste the heritage for yourself.</h3>
+                        <div className="flex flex-col sm:flex-row justify-center items-center gap-10">
+                            <button 
+                                onClick={() => setShowVault(true)}
+                                className="group relative px-16 py-6 overflow-hidden min-w-[300px] border border-[#F4C430]/60 hover:border-[#F4C430] transition-colors"
+                            >
+                                <div className="absolute inset-0 bg-[#F4C430] translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                                <span className="relative z-10 font-label uppercase tracking-[0.4em] font-black text-[#F4C430] group-hover:text-[#120e0a] transition-colors text-sm">Shop Single Estate</span>
+                            </button>
+                            <a href="#" className="group relative px-16 py-6 overflow-hidden min-w-[300px] border border-white/20 hover:border-white transition-all backdrop-blur-md">
+                                <span className="relative z-10 font-label uppercase tracking-[0.4em] font-black text-white text-sm">Book a Tasting</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Terroir Revelation Modal */}
+            {selectedEstate && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 md:p-12">
+                    <div className="absolute inset-0 bg-[#0d0a08]/95 backdrop-blur-xl" onClick={() => setSelectedEstate(null)}></div>
+                    <div className="relative w-full max-w-6xl bg-[#1a1510] border border-[#F4C430]/20 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col md:flex-row">
+                        <div className="relative w-full md:w-1/2 overflow-hidden bg-black h-64 md:h-auto">
+                            <img src={selectedEstate.image} className="w-full h-full object-cover opacity-80" alt={selectedEstate.name} />
+                        </div>
+                        <div className="w-full md:w-1/2 p-12 md:p-20 flex flex-col justify-center">
+                            <span className="font-label text-sm text-[#F4C430] tracking-[0.6em] uppercase mb-6 block font-black">{selectedEstate.location}</span>
+                            <h2 className="font-headline text-5xl md:text-7xl text-white uppercase leading-none mb-10">{selectedEstate.name}</h2>
+                            <p className="font-serif text-[#dcd4c3] text-xl italic opacity-90 mb-12">{selectedEstate.history}</p>
+                            <button className="w-full py-6 bg-[#F4C430] text-[#120e0a] font-label uppercase text-xs tracking-[0.5em] font-black hover:bg-white transition-all shadow-xl">
+                                Secured Batch Acquisition
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </main>
     );
 }

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, SubscriptionPlan, GiftHamper
+from .models import Category, Product, SommelierCuration, GiftHamper
 
 
 @admin.register(Category)
@@ -18,10 +18,10 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
 
 
-@admin.register(SubscriptionPlan)
-class SubscriptionPlanAdmin(admin.ModelAdmin):
-    list_display = ['name', 'price_monthly', 'is_premium', 'is_active']
-    list_editable = ['price_monthly', 'is_active']
+@admin.register(SommelierCuration)
+class SommelierCurationAdmin(admin.ModelAdmin):
+    list_display = ['name', 'price', 'is_active']
+    list_editable = ['price', 'is_active']
     prepopulated_fields = {'slug': ('name',)}
 
 

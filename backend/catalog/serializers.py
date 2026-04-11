@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Product, SubscriptionPlan, GiftHamper
+from .models import Category, Product, SommelierCuration, GiftHamper
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -46,9 +46,9 @@ class CategorySerializer(serializers.ModelSerializer):
         return ProductListSerializer(products, many=True).data
 
 
-class SubscriptionPlanSerializer(serializers.ModelSerializer):
+class SommelierCurationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SubscriptionPlan
+        model = SommelierCuration
         fields = '__all__'
 
 

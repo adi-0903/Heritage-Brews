@@ -28,6 +28,8 @@ def api_root(request):
             'blends': '/api/blends/',
             'rewards': '/api/rewards/',
             'content': '/api/content/',
+            'weather': '/api/weather/',
+            'memberships': '/api/memberships/',
         }
     })
 
@@ -43,6 +45,8 @@ urlpatterns = [
     path('api/blends/', include('blends.urls')),
     path('api/rewards/', include('rewards.urls')),
     path('api/content/', include('content.urls')),
+    path('api/weather/', include('weather.urls')),
+    path('api/memberships/', include('memberships.urls')),
 ]
 
 # Serve media files in development

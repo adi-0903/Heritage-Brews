@@ -126,9 +126,13 @@ export default function Profile() {
                             <span className="material-symbols-outlined text-[60px] md:text-[80px] text-[#F4C430] -rotate-45">account_circle</span>
                         </div>
                         <div>
-                            <span className="font-label text-[#d6aa54] uppercase tracking-[0.4em] text-xs mb-2 block">Premium Member</span>
+                            <span className="font-label text-[#d6aa54] uppercase tracking-[0.4em] text-xs mb-2 block">
+                                {user?.profile?.active_membership ? user.profile.active_membership.title : (user?.loyalty_tier || 'Patron')}
+                            </span>
                             <h1 className="font-headline text-4xl md:text-6xl text-[#fcf9ee] mb-2">{user?.username}</h1>
-                            <p className="font-body text-[#c4bcae] italic opacity-70">Patron since {user?.date_joined ? formatDate(user.date_joined) : 'the dawn of Heritage'}</p>
+                            <p className="font-body text-[#c4bcae] italic opacity-70">
+                                {user?.profile?.active_membership ? `Ascended Lineage: ${user.profile.active_membership.title}` : `Patron since ${user?.date_joined ? formatDate(user.date_joined) : 'the dawn of Heritage'}`}
+                            </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">

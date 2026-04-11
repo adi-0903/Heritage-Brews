@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import './CartDrawer.css';
 
 export default function CartDrawer() {
-  const { items, isOpen, setIsOpen, updateQty, removeItem, totalPrice, totalItems } = useCart();
+  const { items, isOpen, setIsOpen, updateQty, removeItem, totalPrice, rawTotal, savings, discountRate, totalItems } = useCart();
 
   if (!isOpen) return null;
 
@@ -54,8 +54,18 @@ export default function CartDrawer() {
             </div>
 
             <div className="cart-drawer__footer">
+              <div className="cart-drawer__subtotal" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', marginBottom: '4px' }}>
+                <span>Subtotal</span>
+                <span>₹{rawTotal.toLocaleString('en-IN')}</span>
+              </div>
+              {savings > 0 && (
+                <div className="cart-drawer__discount" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#F4C430', fontWeight: 'bold', marginBottom: '12px' }}>
+                  <span>Lineage Discount ({Math.round(discountRate * 100)}%)</span>
+                  <span>−₹{savings.toLocaleString('en-IN')}</span>
+                </div>
+              )}
               <div className="cart-drawer__total">
-                <span>Total</span>
+                <span>Total Investment</span>
                 <span className="cart-drawer__total-price">₹{totalPrice.toLocaleString('en-IN')}</span>
               </div>
               <p className="cart-drawer__delivery-note">🌿 Free delivery on orders above ₹499</p>

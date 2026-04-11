@@ -28,6 +28,9 @@ class UserProfile(models.Model):
     tea_tokens = models.PositiveIntegerField(default=0)
     loyalty_tier = models.CharField(max_length=20, choices=TIER_CHOICES, default='naya_patron')
 
+    # Membership
+    active_membership = models.ForeignKey('memberships.MembershipTier', on_delete=models.SET_NULL, null=True, blank=True, related_name='members')
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

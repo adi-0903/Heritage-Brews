@@ -14,6 +14,7 @@ dotenv.load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-heritage-brews-dev-key-change-in-production-!@#$%'
+OPENWEATHER_API_KEY = os.getenv('OPENWEATHER_API_KEY')
 
 DEBUG = True
 
@@ -45,6 +46,8 @@ INSTALLED_APPS = [
     'blends.apps.BlendsConfig',
     'rewards.apps.RewardsConfig',
     'content.apps.ContentConfig',
+    'weather.apps.WeatherConfig',
+    'memberships.apps.MembershipsConfig',
 ]
 
 # ──────────────────────────────────────────

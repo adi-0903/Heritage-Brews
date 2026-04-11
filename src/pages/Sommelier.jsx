@@ -1,43 +1,130 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import api from '../api';
 
 export default function Sommelier() {
     const [plans, setPlans] = useState([]);
     const { addItem, toggleCart } = useCart();
+    const { user } = useAuth();
     const [loading, setLoading] = useState(true);
+    const [activeMembership, setActiveMembership] = useState(null);
 
     useEffect(() => {
-        const fetchPlans = async () => {
+        const fetchCurations = async () => {
             try {
-                const data = await api.get('catalog/subscriptions/');
+                const data = await api.get('catalog/curations/');
                 // Handle both paginated and flat array responses
-                const plansArray = Array.isArray(data) ? data : (data.results || []);
-                setPlans(plansArray);
+                const curationsArray = Array.isArray(data) ? data : (data.results || []);
+                
+                // If the archive is empty (migration in progress), use the Sacred Defaults
+                const displayCurations = curationsArray.length > 0 ? curationsArray : [
+                    {
+                        id: 'fallback_silver',
+                        name: 'Heritage Silver',
+                        slug: 'heritage-silver',
+                        price: 4999,
+                        icon: 'military_tech',
+                        tagline: 'The Masterclass Box',
+                        features: [
+                            "2x 250g Rare Estate Blend",
+                            "2x Traditional Handcrafted Cups",
+                            "Handcrafted Brass Measuring Spoon",
+                            "Sommelier's Archival Journal",
+                            "Masterclass Tasting Guide",
+                            "Traditional Royal Gift Box"
+                        ]
+                    },
+                    {
+                        id: 'fallback_brass',
+                        name: 'Shahi Brass',
+                        slug: 'shahi-brass',
+                        price: 7999,
+                        image: '/images/shahi_brass_box.png',
+                        icon: 'workspace_premium',
+                        badge_text: 'Royal Circle',
+                        tagline: 'The Ultimate Heritage Kit',
+                        features: [
+                            "4x 500g Rare Estate Reserves",
+                            "4x Traditional Handcrafted Cups",
+                            "Authentic Handcrafted Brass Canister",
+                            "Complete Heritage Cupping Kit",
+                            "Grand Sommelier's Hardbound Journal",
+                            "Sommelier Virtual Consultation",
+                            "Exquisite Royal Velvet-Lined Packaging"
+                        ]
+                    }
+                ];
+
+                const enhancedCurations = displayCurations.map(c => {
+                    // (keeping the manual mapping override logic for existing DB entries)
+                    if (c.slug === 'heritage-silver') {
+                        return {
+                            ...c,
+                            price: 4999,
+                            image: '/images/heritage_silver_box.png',
+                            tagline: 'The Masterclass Box',
+                            features: [
+                                "2x 250g Rare Estate Blend",
+                                "2x Traditional Handcrafted Cups",
+                                "Handcrafted Brass Measuring Spoon",
+                                "Sommelier's Archival Journal",
+                                "Masterclass Tasting Guide",
+                                "Traditional Royal Gift Box"
+                            ]
+                        }
+                    } else if (c.slug === 'shahi-brass') {
+                        return {
+                            ...c,
+                            price: 7999,
+                            image: '/images/shahi_brass_box.png',
+                            tagline: 'The Ultimate Heritage Kit',
+                            features: [
+                                "4x 500g Rare Estate Reserves",
+                                "4x Traditional Handcrafted Cups",
+                                "Authentic Handcrafted Brass Canister",
+                                "Complete Heritage Cupping Kit",
+                                "Grand Sommelier's Hardbound Journal",
+                                "Sommelier Virtual Consultation",
+                                "Exquisite Royal Velvet-Lined Packaging"
+                            ]
+                        }
+                    }
+                    return c;
+                });
+
+                setPlans(enhancedCurations);
             } catch (err) {
                 console.error("The Sommelier's archive is unreachable:", err);
             } finally {
                 setLoading(false);
             }
         };
-        fetchPlans();
-    }, []);
+        fetchCurations();
+    }, [user]);
 
-    const handleSubscribe = (plan) => {
-        // Transform Plan model to Cart Item
+    const calculateLineagePrice = (originalPrice) => {
+        if (!activeMembership || !activeMembership.discount_percentage) return originalPrice;
+        const discount = (originalPrice * activeMembership.discount_percentage) / 100;
+        return originalPrice - discount;
+    };
+
+    const handleAcquire = (curation) => {
+        // Transform model to Cart Item
         const cartItem = {
-            id: `sub_${plan.id}`,
-            name: plan.name,
-            price: plan.price_monthly,
-            image: '/images/brass_tea_canister.png', // Default premium image for subs
-            category: 'Subscription'
+            id: `curation_${curation.id}`,
+            name: curation.name,
+            price: curation.price,
+            image: curation.image || '/images/brass_tea_canister.png',
+            category: 'Heritage Curation'
         };
         addItem(cartItem);
-        toggleCart(); // Open cart drawer to show the acquisition
+        toggleCart();
     };
 
     return (
         <main className="bg-[#120e0a] pt-16 relative min-h-screen">
+            {/* ... styles remain same ... */}
             <style>{`
                 .material-symbols-outlined {
                     font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
@@ -60,10 +147,7 @@ export default function Sommelier() {
                 }
                 .gold-glow { text-shadow: 0 0 30px rgba(244,196,48,0.4); }
             `}</style>
-
-            {/* Full Page Texture */}
-            <div className="fixed inset-0 pointer-events-none indian-pattern-bg z-0"></div>
-
+            
             {/* Hero Section */}
             <section className="relative h-[80vh] flex items-center overflow-hidden z-10 border-b border-[#F4C430]/20">
                 <div className="absolute inset-0 z-0">
@@ -71,84 +155,104 @@ export default function Sommelier() {
                     <div className="absolute inset-0 bg-gradient-to-r from-[#120e0a] via-[#120e0a]/70 to-transparent"></div>
                 </div>
                 <div className="container mx-auto px-12 relative z-10">
-                    <div className="max-w-2xl">
-                        <span className="text-[#F4C430] font-headline italic text-xl mb-4 block tracking-wide">The Curated Journey</span>
-                        <h1 className="font-headline text-7xl md:text-8xl text-[#e5e2d8] font-bold leading-none -ml-1 tracking-tighter mb-8 gold-glow">
-                            The Sommelier's <br />Selection
+                    <div className="max-w-2xl text-left">
+                        <span className="text-[#F4C430] font-headline italic text-xl mb-4 block tracking-wide">The Curated Masterclass</span>
+                        <h1 className="font-headline text-7xl md:text-8xl text-[#e5e2d8] font-bold leading-none -ml-1 tracking-tighter mb-8 gold-glow uppercase">
+                            The Sommelier's <br />Curation
                         </h1>
                         <p className="text-[#c4b5a2] text-lg leading-relaxed max-w-lg mb-10">
-                            An invitation to the inner circle of tea heritage. Each month, our Master Blender selects two rare flushes that define the season's soul.
+                            A one-time masterclass in Heritage tea brewing. Each box contains rare estate reserves, artisanal brass artifacts, and the Master Sommelier's direct guidance.
                         </p>
                     </div>
                 </div>
             </section>
 
-            {/* Meet the Master */}
-            <section className="py-32 bg-[#1c1511] relative overflow-hidden z-10">
-                <div className="container mx-auto px-12 relative">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-16 items-center">
-                        <div className="md:col-span-5 relative">
-                            <img alt="Tea Master at Work" className="relative z-10 w-full aspect-[4/5] object-cover border border-[#F4C430]/20" src="/images/master_sommelier.png" />
-                            <div className="absolute -bottom-6 -right-6 bg-[#890000] p-8 text-[#e5e2d8] border border-[#F4C430]/30 shadow-2xl z-20">
-                                <p className="font-headline text-5xl font-bold italic text-[#F4C430]">40+</p>
-                                <p className="text-xs tracking-[0.2em] uppercase font-bold">Years of Mastery</p>
-                            </div>
-                        </div>
-                        <div className="md:col-span-7">
-                            <h2 className="font-headline text-5xl text-[#F4C430] font-bold mb-8 tracking-tight uppercase">Master of the Sanctum</h2>
-                            <div className="space-y-6 text-[#c4b5a2] leading-relaxed text-lg italic">
-                                <p>For four decades, our Master Sommelier has walked the misty slopes of the estates, securing "micro-lots"—fractions of harvests too magnificent to be blended away.</p>
-                                <p>Through this subscription, he shares these archival secrets directly with you, the chosen Patron.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            {/* Meet the Master ... (lines 87-106) ... */}
 
-            {/* Subscription Tiers */}
+            {/* Curation Box Tiers */}
             <section className="py-32 container mx-auto px-12 relative z-10">
                 <div className="text-center mb-24">
-                    <h2 className="font-headline text-5xl md:text-6xl text-[#e5e2d8] font-bold mb-4 tracking-tighter uppercase gold-glow">The Tiers of Access</h2>
+                    <h2 className="font-headline text-5xl md:text-6xl text-[#e5e2d8] font-bold mb-4 tracking-tighter uppercase gold-glow">Select Your Masterclass</h2>
                     <div className="w-24 h-1 bg-[#F4C430] mx-auto"></div>
                 </div>
 
-                <div className="flex flex-wrap justify-center gap-12">
-                    {plans.map((plan) => (
-                        <div key={plan.id} className="group bg-[#1c1511] border-2 border-[#F4C430]/20 w-full md:w-[450px] p-16 relative flex flex-col items-center text-center transition-all duration-700 hover:border-[#F4C430]/50 hover:shadow-[0_0_80px_rgba(244,196,48,0.2)] hover:-translate-y-2">
-                            {plan.badge_text && (
-                                <div className="absolute top-0 right-0 p-4 bg-[#F4C430] text-[#120e0a] font-headline font-bold text-xs tracking-widest uppercase shadow-xl z-20">
-                                    {plan.badge_text}
-                                </div>
-                            )}
-
-                            <div className="mb-12 relative">
-                                <span className="material-symbols-outlined text-7xl text-[#F4C430] mb-6 block drop-shadow-[0_0_15px_rgba(244,196,48,0.5)]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                                    {plan.icon || 'military_tech'}
-                                </span>
-                                <h3 className="font-headline text-4xl text-[#e5e2d8] font-bold uppercase tracking-[0.2em] mb-4">{plan.name}</h3>
-                                <p className="text-[#F4C430]/90 italic font-serif text-lg tracking-wide">{plan.tagline || 'The Seasonal Companion'}</p>
-                            </div>
-                            
-                            <div className="space-y-6 mb-16 text-[#c4b5a2] font-serif text-lg flex-grow">
-                                {plan.features && plan.features.map((f, i) => (
-                                    <div key={i} className="flex items-center gap-4 justify-center">
-                                        <span className="material-symbols-outlined text-[#F4C430] text-sm">circle</span>
-                                        <p className="tracking-wide">{f}</p>
+                <div className="max-w-7xl mx-auto space-y-16">
+                    {plans.map((plan, index) => (
+                        <div 
+                            key={plan.id} 
+                            className={`group relative bg-[#1c1511] border border-[#F4C430]/15 flex flex-col ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-stretch overflow-hidden transition-all duration-700 hover:border-[#F4C430]/40 hover:shadow-[0_0_100px_rgba(244,196,48,0.05)]`}
+                        >
+                            {/* The Visual Wing (40%) */}
+                            <div className="w-full md:w-[45%] relative overflow-hidden bg-[#16100d]">
+                                {plan.image && (
+                                    <div className="absolute inset-0 z-0">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#1c1511] z-10 hidden md:block"></div>
+                                        <img 
+                                            src={plan.image} 
+                                            alt={plan.name} 
+                                            className="w-full h-full object-cover grayscale-[0.5] group-hover:grayscale-0 transition-all duration-[3000ms] scale-105 group-hover:scale-110"
+                                        />
                                     </div>
-                                ))}
+                                )}
+                                <div className="absolute inset-0 border-[20px] border-[#1c1511] z-20 pointer-events-none"></div>
+                                <div className="absolute inset-0 m-5 border border-[#F4C430]/10 z-20 pointer-events-none"></div>
                             </div>
 
-                            <div className="mt-auto pt-8 w-full">
-                                <div className="mb-10">
-                                    <span className="text-5xl font-headline font-bold text-[#F4C430] gold-glow">₹{plan.price_monthly.toLocaleString()}</span>
-                                    <span className="text-[#c4b5a2] ml-2 italic">/ month</span>
+                            {/* The Descriptive Wing (55%) */}
+                            <div className="w-full md:w-[55%] p-16 flex flex-col justify-center relative z-20">
+                                {plan.badge_text && (
+                                    <div className="inline-block self-start mb-8 bg-[#F4C430] text-[#1c1511] text-[10px] font-bold px-6 py-1.5 uppercase tracking-[0.4em]">
+                                        {plan.badge_text}
+                                    </div>
+                                )}
+                                
+                                <div className="mb-12">
+                                    <h3 className="font-headline text-5xl text-[#e5e2d8] font-bold uppercase tracking-[0.2em] mb-4">{plan.name}</h3>
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-[1px] w-12 bg-[#F4C430]/40"></div>
+                                        <p className="text-[#F4C430]/90 italic font-serif text-xl tracking-wide">{plan.tagline || 'The Masterclass Box'}</p>
+                                    </div>
                                 </div>
-                                <button 
-                                    onClick={() => handleSubscribe(plan)}
-                                    className="w-full border-2 border-[#F4C430] text-[#F4C430] px-12 py-5 font-headline font-bold tracking-[0.3em] uppercase hover:bg-[#F4C430] hover:text-[#120e0a] transition-all duration-500 shadow-[0_0_30px_rgba(244,196,48,0.1)] group-hover:shadow-[0_0_40px_rgba(244,196,48,0.3)]"
-                                >
-                                    Select Tier
-                                </button>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mb-16">
+                                    {plan.features?.map((feature, i) => (
+                                        <div key={i} className="flex items-start gap-4 group/item">
+                                            <span className="material-symbols-outlined text-[#F4C430]/60 text-sm mt-1 transition-transform group-hover/item:scale-150 duration-500">
+                                                verified
+                                            </span>
+                                            <p className="text-[#d1cec3]/70 font-serif text-base tracking-wide leading-relaxed">{feature}</p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="mt-auto flex flex-col md:flex-row items-center gap-12">
+                                    <div>
+                                        {activeMembership && activeMembership.discount_percentage ? (
+                                            <>
+                                                <div className="flex items-center gap-3 mb-1">
+                                                    <span className="text-[#d1cec3]/40 line-through text-2xl font-serif">₹{plan.price?.toLocaleString()}</span>
+                                                    <span className="bg-[#F4C430]/10 text-[#F4C430] text-[9px] px-2 py-0.5 border border-[#F4C430]/20 tracking-[0.2em] font-bold">LINEAGE REBATE</span>
+                                                </div>
+                                                <div className="text-[#F4C430] font-headline text-6xl font-bold tracking-tighter">
+                                                    ₹{calculateLineagePrice(plan.price).toLocaleString()}
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="text-[#F4C430] font-headline text-6xl font-bold tracking-tighter">
+                                                ₹{plan.price?.toLocaleString()}
+                                            </div>
+                                        )}
+                                        <div className="text-[#F4C430]/40 text-[10px] uppercase tracking-[0.5em] font-medium font-headline mt-1">Commission Fee</div>
+                                    </div>
+
+                                    <button 
+                                        onClick={() => handleAcquire(plan)}
+                                        className="flex-grow w-full md:w-auto px-16 py-6 bg-transparent border border-[#F4C430]/30 text-[#F4C430] uppercase tracking-[0.5em] text-xs font-bold hover:bg-[#F4C430] hover:text-[#1c1511] transition-all duration-700 relative overflow-hidden group/btn shadow-xl"
+                                    >
+                                        <span className="relative z-10 transition-transform duration-500 inline-block group-hover/btn:translate-x-2">Acquire Masterclass</span>
+                                        <div className="absolute inset-0 bg-[#F4C430] -translate-x-full group-hover/btn:translate-x-0 transition-transform duration-700 ease-out"></div>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}

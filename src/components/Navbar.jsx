@@ -25,10 +25,11 @@ export default function Navbar() {
         { name: 'Sommelier', path: '/sommelier' },
         { name: 'Stories', path: '/stories' },
         { name: 'Rewards', path: '/rewards' },
+        { name: 'Premium', path: '/premium' },
     ];
 
     return (
-        <>
+        <React.Fragment>
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&display=swap');
                 
@@ -107,7 +108,7 @@ export default function Navbar() {
                         </nav>
 
                         {/* Actions Right */}
-                        <div className="flex items-center space-x-6 lg:space-x-10 flex-shrink-0">
+                        <div className="flex items-center space-x-4 lg:space-x-6 flex-shrink-0">
 
                             {/* Auth */}
                             <div className="hidden md:flex items-center relative group/profile">
@@ -144,28 +145,28 @@ export default function Navbar() {
                             </div>
 
                             {/* Cart */}
-                            <Link to="/checkout" className="text-[#F4C430] hover:text-white transition-colors relative flex items-center">
+                            <Link to="/checkout" className="text-[#F4C430] hover:text-white transition-colors relative flex items-center pr-2">
                                 <span className="material-symbols-outlined text-[30px]" style={{ fontVariationSettings: "'FILL' 1" }}>shopping_bag</span>
                                 {totalItems > 0 && (
-                                    <span className="absolute -top-1.5 -right-2 bg-red-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-lg">
+                                    <span className="absolute -top-1.5 right-0 bg-red-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-lg border border-[#1a1510]">
                                         {totalItems}
                                     </span>
                                 )}
                             </Link>
 
                             {/* Reserve Button */}
-                            <Link to="/reservation" className="hidden lg:flex items-center justify-center px-8 py-3 border border-[#F4C430] bg-[#F4C430]/5 text-[#F4C430] hover:bg-[#F4C430] hover:text-[#120e0a] transition-all duration-300 nav-text text-[12px] font-bold uppercase tracking-[0.2em] shadow-[0_0_10px_rgba(244,196,48,0.05)] hover:shadow-[0_0_20px_rgba(244,196,48,0.3)]">
+                            <Link to="/reservation" className="flex items-center justify-center px-8 py-3 border border-[#F4C430] bg-[#F4C430]/5 text-[#F4C430] hover:bg-[#F4C430] hover:text-[#120e0a] transition-all duration-300 nav-text text-[12px] font-bold uppercase tracking-[0.2em] shadow-[0_0_10px_rgba(244,196,48,0.05)] hover:shadow-[0_0_20px_rgba(244,196,48,0.3)]">
                                 Reserve
                             </Link>
-
-                            {/* Mobile Menu Icon */}
-                            <button className="xl:hidden text-[#F4C430]">
-                                <span className="material-symbols-outlined text-4xl">menu</span>
-                            </button>
                         </div>
+
+                        {/* Mobile Menu Icon */}
+                        <button className="xl:hidden text-[#F4C430]">
+                            <span className="material-symbols-outlined text-4xl">menu</span>
+                        </button>
                     </div>
                 </div>
             </header>
-        </>
+        </React.Fragment>
     );
 }

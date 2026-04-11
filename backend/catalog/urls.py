@@ -6,7 +6,7 @@ urlpatterns = [
     path('products/', views.ProductListView.as_view(), name='product-list'),
     path('products/featured/', views.featured_products, name='product-featured'),
     path('products/<slug:slug>/', views.ProductDetailView.as_view(), name='product-detail'),
-    path('subscriptions/', views.SubscriptionPlanListView.as_view(), name='subscription-list'),
+    path('curations/', views.SommelierCurationListView.as_view(), name='sommelier-curation-list'),
     path('gifts/', views.GiftHamperListView.as_view(), name='gift-list'),
     path('gifts/<slug:slug>/', views.GiftHamperDetailView.as_view(), name='gift-detail'),
 ]
