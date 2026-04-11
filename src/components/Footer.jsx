@@ -1,6 +1,11 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 
 export default function Footer() {
+    const location = useLocation();
+
+    if (location.pathname.startsWith('/invoice')) return null;
+
     return (
         <div dangerouslySetInnerHTML={{ __html: `<style>
         .footer-mughal {

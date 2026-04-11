@@ -31,10 +31,16 @@ export default function CartDrawer() {
               {items.map(item => (
                 <div key={item.id} className="cart-item">
                   <div className="cart-item__info">
-                    <span className="cart-item__emoji">{item.emoji || '🍵'}</span>
+                    {item.image ? (
+                        <div className="cart-item__img-wrapper">
+                            <img src={item.image} alt={item.name} className="cart-item__img" />
+                        </div>
+                    ) : (
+                        <span className="cart-item__emoji">{item.emoji || '🍵'}</span>
+                    )}
                     <div>
                       <p className="cart-item__name">{item.name}</p>
-                      <p className="cart-item__price">₹{item.price}</p>
+                      <p className="cart-item__price">₹{item.price.toLocaleString('en-IN')}</p>
                     </div>
                   </div>
                   <div className="cart-item__controls">

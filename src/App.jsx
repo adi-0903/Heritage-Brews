@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { CartProvider } from './context/CartContext';
+import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import CartDrawer from './components/CartDrawer';
 import Footer from './components/Footer';
@@ -14,6 +15,11 @@ import Stories from './pages/Stories';
 import Rewards from './pages/Rewards';
 import Checkout from './pages/Checkout';
 import Reservation from './pages/Reservation';
+import Login from './pages/Login';
+import Register from './pages/Register';
+
+import Profile from './pages/Profile';
+import Invoice from './pages/Invoice';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -23,11 +29,13 @@ function ScrollToTop() {
 
 function App() {
   return (
-    <CartProvider>
-      <Router>
-        <ScrollToTop />
-        <Navbar />
-        <main>
+    <AuthProvider>
+      <CartProvider>
+        <Router>
+          <ScrollToTop />
+          <Navbar />
+          <CartDrawer />
+          <main>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/menu" element={<Menu />} />
@@ -37,14 +45,19 @@ function App() {
             <Route path="/estates" element={<Estates />} />
             <Route path="/stories" element={<Stories />} />
             <Route path="/rewards" element={<Rewards />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/invoice/:orderId" element={<Invoice />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/reservation" element={<Reservation />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
           </Routes>
         </main>
         <Footer />
       </Router>
     </CartProvider>
-  );
+  </AuthProvider>
+);
 }
 
 export default App;
