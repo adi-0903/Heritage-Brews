@@ -7,14 +7,13 @@
 <p align="center">
   <strong>A Museum-Grade E-Commerce Masterpiece celebrating the 130-Year Legacy of Indian Tea & Coffee.</strong>
   <br/>
-  <em>"From the estates of India — Our Journey, Your Cup."</em>
+  <em>"Preserving the essence of royalty, one flush and one bite at a time."</em>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=white" />
   <img src="https://img.shields.io/badge/Django-5.1-092E20?style=for-the-badge&logo=django&logoColor=white" />
   <img src="https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite&logoColor=white" />
-  <img src="https://img.shields.io/badge/PostgreSQL-16.x-336791?style=for-the-badge&logo=postgresql&logoColor=white" />
   <img src="https://img.shields.io/badge/TailwindCSS-4.x-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white" />
 </p>
 
@@ -22,41 +21,37 @@
 
 ## 🌄 The Archival Vision
 
-**Heritage Brews** is a digital sanctuary engineered to evoke the sensory weight of an antique Indian library. It represents a paradigm shift in e-commerce, where **High-Fidelity Interaction Design** meets **Archival Storytelling**. 
+**Heritage Brews** is a digital sanctuary engineered to evoke the sensory weight of an ancient Indian haveli. It is where **High-Fidelity Interaction Design** meets **Artisanal Storytelling**. 
 
-By blending cinematic aesthetics with a robust Django-powered backend, this project serves as a "Living Archive"—allowing patrons to not just purchase products, but to ascend through a royal lineage of tea mastery.
+By blending cinematic aesthetics with a robust Django-powered backend, this project serves as a "Living Archive"—allowing patrons to explore a royal collection of rare tea flushes and centuries-old snack recipes, all synchronized through a sophisticated **Visual Sovereignty System**.
 
 ---
 
-## 🎨 The Design Philosophy: "Obsidian & Gold"
+## 🎨 The Design Codex: "Brahmi Gold & Ancestral Ink"
 
-Every pixel in the Sanctuary is governed by a strict **Design Codex** that prioritizes prestige, history, and visual depth.
+Every pixel is governed by a strict visual identity that prioritizes prestige, history, and tactile depth.
 
-### 🏛️ Visual Tokens
-| Category | Specification | Designer Intent |
+### 🏛️ Digital Tokens
+| Category | Token | specification | Intent |
+| :--- | :--- | :--- | :--- |
+| **Foundation** | `Ancestral Ink` | `#120e0a` | The deep obsidian of a midnight library. |
+| **Hallmark** | `Brahmi Gold` | `#F4C430` | The warmth of burnished royal brass. |
+| **Surface** | `Royal Parchment` | `#1a1510` | The texture of aged, glass-protected manuscripts. |
+| **Typography** | `Heritage Headline` | *Playfair Display* | Evokes the dignity of colonial-era newspapers. |
+
+### 🛡️ The Visual Sovereignty System
+To protect the "Heritage Aesthetic" from outdated data, we implemented a **Proprietary Force-Sync Engine**:
+- **Automatic Keyword Mapping**: The system scans product names (e.g., 'Gulab', 'Kaju', 'Mathri') and proactively overrides backend URLs with high-fidelity, local `/images/` specimens.
+- **Cache-Busting Protocol**: Implements `?v=heritage` query strings to ensure new artisanal renders appear instantly to patrons across all sessions.
+
+---
+
+## 🍬 The Artisanal Item Ledger
+
+Beyond the brews, our collection features the **Regal Confectionery Portfolio**:
+
+| Specimen | Archival Origin | Description |
 | :--- | :--- | :--- |
-| **Foundation** | `#120e0a` (Deep Obsidian) | Evokes the quiet intensity of an ancient midnight study. |
-| **Hallmark** | `#F4C430` (Royal Gold) | Represents the warmth of burnished brass and royal decrees. |
-| **Surfaces** | `#1a1510` (Dark Walnut) | Provides a tactile, wood-grain depth to interactive cards. |
-| **Typography** | *Noto Serif* & *Inter* | A dialogue between traditional calligraphy and modern data. |
-
-### ✨ Interaction Specialties
-- **High-Luminosity Glassmorphism**: Cards feature `backdrop-blur(24px)` and fine-rimmed golden borders, creating a "Museum Case" effect.
-- **The Golden Sweep**: Hovering over interactive elements triggers a custom CSS `sweep` animation—a metallic flash that mimics light reflecting off polished gold.
-- **Cinematic Depth**: Multi-layered radial gradients and inset vignettes ensure that focus is always directed towards the heritage content.
-
----
-
-## 🍵 Key Full-Stack Hallmarks
-
-### 👑 The Four Ascensions (Loyalty 2.0)
-Patrons earn **Tea Tokens** for every interaction, progressing through four distinct tiers:
-1. **Naya Patron**: The first step into the archive (0+ Tokens).
-2. **Brass Baron**: A distinguished connoisseur (1,000+ Tokens).
-3. **Heritage Keeper**: Guardian of the archival flushes (5,000+ Tokens).
-4. **Maharaja**: The ultimate peak of connoisseurship (15,000+ Tokens).
-
-### 🌿 The Alchemy of Six
 An infinite-scroll marquee detailing the sacred journey of the leaf:
 > *Katai (Harvest) → Murjhana (Wither) → Belan (Roll) → Khameer (Ferment) → Sukhana (Dry) → Chuna (Grade)*
 

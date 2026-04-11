@@ -166,32 +166,62 @@ export default function Menu() {
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                            {category.products && category.products.map((product) => (
-                                <div key={product.id} className="flex gap-6 group">
-                                    <div className="w-32 h-32 flex-shrink-0 overflow-hidden rounded-sm shadow-md border border-[#F4C430]/10">
+                            {category.products && category.products.map((product) => {
+                                // Force Visual Sync with local archive
+                                const imageMap = {
+                                    'mathri': 'mathri_snack',
+                                    'kaju': 'kaju_katli',
+                                    'mysore': 'mysore_pak',
+                                    'gulab': 'awadhi_gulab_jamun',
+                                    'peda': 'kesar_peda',
+                                    'paan': 'banarasi_paan_malai',
+                                    'kachori': 'kachori_kachwahas'
+                                };
+                                
+                                let finalImage = product.image;
+                                Object.keys(imageMap).forEach(key => {
+                                    if (product.name.toLowerCase().includes(key)) {
+                                        finalImage = `/images/${imageMap[key]}.png?v=heritage`;
+                                    }
+                                });
+
+                                return (
+                                    <div key={product.id} className="flex gap-6 group">
+                                        <div className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-sm shadow-md border border-[#F4C430]/10">
                                             <img 
-                                                className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500" 
-                                                src={product.image || '/images/loose_tea_leaves.png'} 
-                                                alt={product.name} 
+                                                src={finalImage}
+                                                alt={product.name}
+                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                onError={(e) => {
+                                                    e.target.src = 'https://images.unsplash.com/photo-1548839140-29a74aa9670d?auto=format&fit=crop&q=80&w=400';
+                                                }}
                                             />
-                                    </div>
-                                    <div className="flex-1 flex flex-col justify-between">
-                                        <div>
-                                            <div className="flex justify-between items-start mb-1 gap-4">
-                                                <h3 className="text-2xl font-headline font-bold text-[#F4C430]">{product.name}</h3>
-                                                <span className="text-xl font-headline text-[#7b5800] font-bold">₹{product.price}</span>
-                                            </div>
-                                            <p className="text-[#c4b5a2] text-sm italic line-clamp-2">{product.description}</p>
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-40" />
                                         </div>
-                                        <button 
-                                            onClick={() => addItem(product)}
-                                            className="self-start mt-4 bg-[#120e0a] border border-[#F4C430]/30 text-[#e5e2d8] hover:bg-[#F4C430] hover:text-[#120e0a] px-5 py-2 text-xs uppercase tracking-widest font-bold transition-all flex items-center gap-2 group-active:scale-95"
-                                        >
-                                            <span className="material-symbols-outlined text-[16px]">add_shopping_cart</span> Add
-                                        </button>
+                                        
+                                        <div className="flex-1 flex flex-col justify-between">
+                                            <div>
+                                                <div className="flex justify-between items-start mb-1 gap-4">
+                                                    <h3 className="text-2xl font-headline font-bold text-[#F4C430] group-hover:text-white transition-colors">
+                                                        {product.name}
+                                                    </h3>
+                                                    <span className="text-xl font-headline text-[#7b5800] font-bold">₹{product.price}</span>
+                                                </div>
+                                                <p className="text-[#c4b5a2] text-sm italic line-clamp-2 leading-relaxed">
+                                                    {product.description}
+                                                </p>
+                                            </div>
+                                            <button 
+                                                onClick={() => addItem(product)}
+                                                className="self-start mt-4 bg-[#120e0a] border border-[#F4C430]/30 text-[#e5e2d8] hover:bg-[#F4C430] hover:text-[#120e0a] px-5 py-2 text-xs uppercase tracking-widest font-bold transition-all flex items-center gap-2 group-active:scale-95"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">add_shopping_cart</span> 
+                                                ADD TO COLLECTION
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 ))}
