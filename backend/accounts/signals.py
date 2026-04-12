@@ -3,16 +3,14 @@ from django.dispatch import receiver
 from django.contrib.auth.models import User
 from .models import UserProfile
 
-
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    """Auto-create a UserProfile when a new User is registered."""
+    """Automatically create a UserProfile when a new User is created."""
     if created:
         UserProfile.objects.create(user=instance)
 
-
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    """Auto-save the UserProfile when the User is saved."""
+    """Ensure the UserProfile is saved when the User is saved."""
     if hasattr(instance, 'profile'):
         instance.profile.save()

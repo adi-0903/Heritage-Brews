@@ -20,11 +20,18 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer(read_only=True)
+    tokens = serializers.IntegerField(source='profile.tea_tokens', read_only=True)
+    loyalty_tier = serializers.CharField(source='profile.loyalty_tier', read_only=True)
+    loyalty_tier_display = serializers.CharField(source='profile.get_loyalty_tier_display', read_only=True)
+    next_tier_tokens = serializers.IntegerField(source='profile.next_tier_tokens', read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile']
-        read_only_fields = ['id']
+        fields = [
+            'id', 'username', 'email', 'first_name', 'last_name', 
+            'profile', 'tokens', 'loyalty_tier', 'loyalty_tier_display', 'next_tier_tokens'
+        ]
+        read_only_fields = ['id', 'tokens', 'loyalty_tier', 'loyalty_tier_display', 'next_tier_tokens']
 
 
 class RegisterSerializer(serializers.ModelSerializer):

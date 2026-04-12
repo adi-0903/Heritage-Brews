@@ -4,7 +4,7 @@ import api from '../api';
 import { useAuth } from '../context/AuthContext';
 
 export default function Profile() {
-    const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
+    const { user, isAuthenticated, loading: authLoading, logout, refreshProfile } = useAuth();
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [rewards, setRewards] = useState(null);
@@ -26,6 +26,9 @@ export default function Profile() {
     const fetchProfileData = async () => {
         setLoading(true);
         try {
+            // Re-fetch core user profile for tokens and tier sync
+            if (refreshProfile) refreshProfile();
+
             // Fetch individually so one failure doesn't block the others
             api.get('orders/')
                 .then(data => setOrders(data))
@@ -126,22 +129,22 @@ export default function Profile() {
                             <span className="material-symbols-outlined text-[60px] md:text-[80px] text-[#F4C430] -rotate-45">account_circle</span>
                         </div>
                         <div>
-                            <span className="font-label text-[#d6aa54] uppercase tracking-[0.4em] text-xs mb-2 block">
-                                {user?.profile?.active_membership ? user.profile.active_membership.title : (user?.loyalty_tier || 'Patron')}
+                            <span className="font-label text-[#d6aa54] uppercase tracking-[0.4em] text-sm mb-2 block font-bold">
+                                {user?.profile?.active_membership ? user.profile.active_membership.title : (user?.loyalty_tier_display || 'Patron')}
                             </span>
                             <h1 className="font-headline text-4xl md:text-6xl text-[#fcf9ee] mb-2">{user?.username}</h1>
-                            <p className="font-body text-[#c4bcae] italic opacity-70">
+                            <p className="font-body text-base text-[#c4bcae] italic opacity-70">
                                 {user?.profile?.active_membership ? `Ascended Lineage: ${user.profile.active_membership.title}` : `Patron since ${user?.date_joined ? formatDate(user.date_joined) : 'the dawn of Heritage'}`}
                             </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        <div className="glass-card px-8 py-6 text-center">
-                            <span className="block text-[#F4C430] font-headline text-3xl">{user?.tokens || 0}</span>
-                            <span className="block text-[10px] uppercase tracking-widest text-[#F4C430]/60">Tea Tokens</span>
+                        <div className="glass-card px-10 py-8 text-center border-2 border-[#F4C430]/20 shadow-[0_0_30px_rgba(244,196,48,0.1)]">
+                            <span className="block text-[#F4C430] font-headline text-4xl mb-1">{user?.tokens || 0}</span>
+                            <span className="block text-[11px] uppercase tracking-[0.3em] font-black text-[#F4C430]/60">Tea Tokens Balance</span>
                         </div>
-                        <button onClick={logout} className="p-4 glass-card hover:bg-red-900/10 hover:border-red-900/30 transition-all group">
-                            <span className="material-symbols-outlined text-red-500/70 group-hover:text-red-500">logout</span>
+                        <button onClick={logout} className="p-5 glass-card hover:bg-red-900/10 hover:border-red-900/30 transition-all group">
+                            <span className="material-symbols-outlined text-red-500/70 group-hover:text-red-500 text-2xl">logout</span>
                         </button>
                     </div>
                 </div>
@@ -180,8 +183,8 @@ export default function Profile() {
                                         <div className="p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-white/5">
                                             <div>
                                                 <div className="flex items-center gap-3 mb-1">
-                                                    <span className="font-headline text-xl text-[#F4C430]">{order.order_number}</span>
-                                                    <span className={`status-badge ${
+                                                    <span className="font-headline text-2xl text-[#F4C430]">{order.order_number}</span>
+                                                    <span className={`status-badge px-4 py-1.5 rounded-sm ${
                                                         order.status === 'delivered' ? 'bg-green-900/30 text-green-400' :
                                                         order.status === 'cancelled' ? 'bg-red-900/30 text-red-400' :
                                                         'bg-[#F4C430]/20 text-[#F4C430]'
@@ -189,36 +192,36 @@ export default function Profile() {
                                                         {order.status.replace('_', ' ')}
                                                     </span>
                                                 </div>
-                                                <p className="text-xs text-white/40 uppercase tracking-widest font-body">Placed on {formatDate(order.created_at)}</p>
+                                                <p className="text-sm text-white/50 uppercase tracking-[0.2em] font-body">Archived on {formatDate(order.created_at)}</p>
                                             </div>
                                             <div className="text-left md:text-right w-full md:w-auto">
-                                                <p className="text-[10px] uppercase tracking-widest text-white/40 mb-1">Grand Total</p>
-                                                <p className="font-headline text-2xl text-[#fcf9ee]">₹{order.total}</p>
+                                                <p className="text-xs uppercase tracking-[0.3em] font-black text-white/40 mb-1">Patron Total Contribution</p>
+                                                <p className="font-headline text-4xl text-[#fcf9ee]">₹{order.total}</p>
                                             </div>
                                         </div>
                                         <div className="p-6 md:px-8 bg-white/5">
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                                 {order.items.map((item, idx) => (
                                                     <div key={idx} className="flex gap-4 items-center">
-                                                        <div className="w-12 h-12 glass-card flex items-center justify-center text-xs text-[#F4C430] font-bold">
+                                                        <div className="w-12 h-12 glass-card flex items-center justify-center text-sm text-[#F4C430] font-bold">
                                                             {item.quantity}x
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm font-medium text-white/80">{item.product_name}</p>
-                                                            <p className="text-[10px] text-[#F4C430]/60 uppercase tracking-widest">₹{item.product_price}</p>
+                                                            <p className="text-base font-medium text-white/90">{item.product_name}</p>
+                                                            <p className="text-xs text-[#F4C430]/60 uppercase tracking-widest">₹{item.product_price}</p>
                                                         </div>
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div className="mt-8 pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs">
-                                                <div className="flex items-center gap-2 text-white/40 italic">
-                                                    <span className="material-symbols-outlined text-sm">location_on</span>
+                                            <div className="mt-8 pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-sm">
+                                                <div className="flex items-center gap-2 text-white/50 italic">
+                                                    <span className="material-symbols-outlined text-base">location_on</span>
                                                     {order.address}, {order.city}
                                                 </div>
                                                 <div className="flex items-center gap-4">
-                                                     <span className="text-white/40 uppercase tracking-widest">Payment: {order.payment_method.toUpperCase()}</span>
+                                                     <span className="text-white/50 uppercase tracking-widest font-medium">Payment: {order.payment_method.toUpperCase()}</span>
                                                      <Link to={`/invoice/${order.order_number}`} className="text-[#F4C430] hover:underline uppercase tracking-tighter font-bold flex items-center gap-1 group/btn">
-                                                        <span className="material-symbols-outlined text-sm transform group-hover/btn:translate-y-0.5 transition-transform">article</span>
+                                                        <span className="material-symbols-outlined text-base transform group-hover/btn:translate-y-0.5 transition-transform">article</span>
                                                         Download Invoice
                                                      </Link>
                                                 </div>
@@ -239,14 +242,17 @@ export default function Profile() {
                                          <span className="material-symbols-outlined text-[120px]">verified</span>
                                      </div>
                                      <span className="font-label text-[#d6aa54] uppercase tracking-[0.3em] text-[10px] mb-4 block underline decoration-[#F4C430]/30 underline-offset-4">Loyalty Tier</span>
-                                     <h3 className="font-headline text-3xl mb-1 text-[#F4C430]">{user?.loyalty_tier || 'New Patron'}</h3>
+                                     <h3 className="font-headline text-3xl mb-1 text-[#F4C430]">{user?.loyalty_tier_display || 'New Patron'}</h3>
                                      <p className="text-white/60 text-sm italic mb-8">Elevating your status with every visit.</p>
                                      <div className="w-full bg-white/5 h-1 relative mb-2">
-                                         <div className="absolute top-0 left-0 bg-[#F4C430] h-full shadow-[0_0_10px_#F4C430]" style={{ width: '45%' }}></div>
+                                         <div 
+                                            className="absolute top-0 left-0 bg-[#F4C430] h-full shadow-[0_0_10px_#F4C430] transition-all duration-1000" 
+                                            style={{ width: `${Math.min(100, (user?.tokens || 0) / (user?.loyalty_tier === 'naya_patron' ? 10 : 50))}%` }}
+                                         ></div>
                                      </div>
                                      <div className="flex justify-between text-[10px] uppercase tracking-widest text-[#F4C430]/60">
-                                         <span>0 pts</span>
-                                         <span>Next Tier: 2500 pts</span>
+                                         <span>{user?.tokens || 0} pts</span>
+                                         <span>{user?.next_tier_tokens ? `Next Milestone: ${user.next_tier_tokens} pts` : 'Max Tier Achieved'}</span>
                                      </div>
                                 </div>
                                 <div className="glass-card p-8 border-l-4 border-l-[#F4C430]">
@@ -265,16 +271,18 @@ export default function Profile() {
                                      </ul>
                                 </div>
                             </div>
-
+                            
                             {/* Token History */}
                             <div className="lg:col-span-8">
                                 <div className="glass-card p-8">
                                     <h4 className="font-headline text-2xl mb-8 border-b border-white/5 pb-4">Activity Log</h4>
                                     <div className="space-y-6">
-                                        {(rewards?.results || []).length === 0 ? (
-                                            <p className="text-white/30 italic text-center py-12">No recent token activity recorded.</p>
-                                        ) : (
-                                            rewards.map((trans, i) => (
+                                        {(() => {
+                                            const rewardList = Array.isArray(rewards) ? rewards : (rewards?.results || []);
+                                            if (rewardList.length === 0) {
+                                                return <p className="text-white/30 italic text-center py-12">No recent token activity recorded.</p>;
+                                            }
+                                            return rewardList.map((trans, i) => (
                                                 <div key={i} className="flex justify-between items-center py-4 border-b border-white/5 last:border-0 hover:bg-white/5 px-4 transition-all">
                                                     <div className="flex items-center gap-4">
                                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${trans.transaction_type === 'earn' ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400'}`}>
@@ -283,16 +291,16 @@ export default function Profile() {
                                                             </span>
                                                         </div>
                                                         <div>
-                                                            <p className="font-headline text-white/90">{trans.description}</p>
-                                                            <p className="text-[10px] uppercase tracking-widest text-white/40">{formatDate(trans.timestamp)}</p>
+                                                            <p className="font-headline text-lg text-white/90">{trans.reason || trans.description}</p>
+                                                            <p className="text-xs uppercase tracking-widest text-white/40">{formatDate(trans.created_at || trans.timestamp)}</p>
                                                         </div>
                                                     </div>
-                                                    <div className={`font-headline text-lg ${trans.transaction_type === 'earn' ? 'text-green-400' : 'text-red-400'}`}>
-                                                        {trans.transaction_type === 'earn' ? '+' : '-'}{trans.tokens}
+                                                    <div className={`font-headline text-xl ${trans.transaction_type === 'earn' ? 'text-green-400' : 'text-red-400'}`}>
+                                                        {trans.transaction_type === 'earn' ? '+' : '-'}{trans.amount || trans.tokens}
                                                     </div>
                                                 </div>
-                                            ))
-                                        )}
+                                            ));
+                                        })()}
                                     </div>
                                     <div className="mt-8 text-center">
                                          <Link to="/rewards" className="bg-[#F4C430]/10 text-[#F4C430] py-3 px-8 text-[10px] uppercase tracking-[0.2em] font-bold hover:bg-[#F4C430] hover:text-[#120e0a] transition-all">Explore Full Rewards System</Link>

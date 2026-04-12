@@ -112,7 +112,34 @@ class OrderListView(APIView):
 
     def get(self, request):
         orders = Order.objects.filter(user=request.user)
-        serializer = OrderSerializer(orders, many=True)
+        
+        # REGISTRY RECALIBRATION: Audit and correct tokens for the 1:100 Elite Ratio
+        delivered_uncredited = orders.filter(status='delivered', payment_status='paid')
+        for order in delivered_uncredited:
+            expected_tokens = int(order.total / 100)
+            
+            # If tokens were never awarded OR if they were awarded at the old ratio
+            if order.tokens_earned != expected_tokens:
+                diff = expected_tokens - order.tokens_earned
+                
+                # Update the order registry
+                Order.objects.filter(pk=order.pk).update(tokens_earned=expected_tokens)
+                
+                # Update the user's treasury balance
+                from accounts.models import UserProfile
+                profile, _ = UserProfile.objects.get_or_create(user=request.user)
+                profile.tea_tokens += diff
+                if profile.tea_tokens < 0: profile.tea_tokens = 0
+                profile.save(update_fields=['tea_tokens'])
+                
+                if hasattr(profile, 'recalculate_tier'):
+                    profile.recalculate_tier()
+                
+                # Synchronize the Transaction manifest
+                from rewards.models import TokenTransaction
+                TokenTransaction.objects.filter(order=order, transaction_type='earn').update(amount=expected_tokens)
+            
+        serializer = OrderSerializer(orders.order_by('-created_at'), many=True)
         return Response(serializer.data)
 
 
@@ -314,7 +341,11 @@ def payment_verify(request):
     order = get_object_or_404(Order, order_number=order_number)
     order.payment_status = 'paid'
     order.payment_id = payment_id
-    order.status = 'confirmed'
+    
+    # Only update status to confirmed if it hasn't progressed further
+    if order.status == 'placed':
+        order.status = 'confirmed'
+        
     order.save()
 
     return Response({

@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 
 export default function Rewards() {
-    const { user, isAuthenticated, loading: authLoading } = useAuth();
+    const { user, isAuthenticated, loading: authLoading, refreshProfile } = useAuth();
     const [tiers, setTiers] = useState([]);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -16,6 +16,10 @@ export default function Rewards() {
     const fetchRewardsData = async () => {
         try {
             setLoading(true);
+            
+            // Re-fetch core user profile for tokens and tier sync
+            if (isAuthenticated && refreshProfile) refreshProfile();
+
             const tiersData = await api.get('rewards/tiers/');
             setTiers(tiersData);
 
@@ -304,14 +308,14 @@ export default function Rewards() {
                     <div className="md:col-span-8 bg-[#3f2a13] text-[#F4C430] p-12 flex flex-col justify-between min-h-[300px]">
                         <span className="material-symbols-outlined text-6xl opacity-30">payments</span>
                         <div>
-                            <h4 className="font-headline text-4xl mb-2">₹1 Spent = 1 Tea Token</h4>
+                            <h4 className="font-headline text-4xl mb-2">₹100 Spent = 1 Tea Token</h4>
                             <p className="font-body opacity-80 text-[#fcf9ee]">Every sip adds to your legacy. Tokens never expire for active members.</p>
                         </div>
                     </div>
                     <div className="md:col-span-4 bg-[#31281f] p-8 flex flex-col items-center text-center justify-center group hover:bg-[#4a3b2b] transition-all">
                         <span className="material-symbols-outlined text-4xl text-[#d6aa54] mb-4 group-hover:scale-110 transition-transform">cake</span>
                         <h4 className="font-headline text-xl mb-1">Birthday Gift</h4>
-                        <p className="font-body text-2xl font-bold text-[#d6aa54]">500 pts</p>
+                        <p className="font-body text-2xl font-bold text-[#d6aa54]">100 Tokens</p>
                     </div>
                     {/* ... other ways ... */}
                 </div>

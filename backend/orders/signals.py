@@ -7,29 +7,39 @@ from .models import Order
 def award_tokens_on_delivery(sender, instance, **kwargs):
     """
     Award tea tokens when an order is delivered.
-    Rule: 1 token per ₹10 spent.
+    Rule: 1 token per ₹100 spent.
     """
     if instance.status == 'delivered' and instance.payment_status == 'paid':
-        tokens = int(instance.total / 10)
-        if tokens > 0 and instance.tokens_earned == 0:
-            instance.tokens_earned = tokens
-            Order.objects.filter(pk=instance.pk).update(tokens_earned=tokens)
+        # Only award if not already awarded
+        if instance.tokens_earned == 0:
+            tokens = int(instance.total / 100)
+            if tokens > 0:
+                # Atomically update order to prevent race conditions if possible
+                Order.objects.filter(pk=instance.pk, tokens_earned=0).update(tokens_earned=tokens)
+                
+                # Re-fetch instance to ensure we have the updated tokens_earned in memory
+                instance.refresh_from_db()
 
-            # Credit to user profile
-            if instance.user and hasattr(instance.user, 'profile'):
-                profile = instance.user.profile
-                profile.tea_tokens += tokens
-                profile.save(update_fields=['tea_tokens'])
-                profile.recalculate_tier()
+                # Credit to user profile
+                if instance.user:
+                    from accounts.models import UserProfile
+                    profile, created = UserProfile.objects.get_or_create(user=instance.user)
+                    
+                    profile.tea_tokens += tokens
+                    profile.save(update_fields=['tea_tokens'])
+                    
+                    if hasattr(profile, 'recalculate_tier'):
+                        profile.recalculate_tier()
 
-                # Log the transaction
-                from rewards.models import TokenTransaction
-                TokenTransaction.objects.create(
-                    user=instance.user,
-                    amount=tokens,
-                    reason=f"Order {instance.order_number} delivered",
-                    order=instance,
-                )
+                    # Log the transaction
+                    from rewards.models import TokenTransaction
+                    if not TokenTransaction.objects.filter(order=instance, transaction_type='earn').exists():
+                        TokenTransaction.objects.create(
+                            user=instance.user,
+                            amount=tokens,
+                            reason=f"Order {instance.order_number} delivered",
+                            order=instance,
+                        )
 
 
 @receiver(post_save, sender=Order)
