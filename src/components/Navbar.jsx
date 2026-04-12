@@ -22,7 +22,7 @@ export default function Navbar() {
         { name: 'Tea Gardens', path: '/estates' },
         { name: 'Coffee Roasts', path: '/menu' },
         { name: 'Curations', path: '/gifts' },
-        { name: 'Sommelier', path: '/sommelier' },
+        { name: 'The Sanctuary', path: '/sanctuary' },
         { name: 'Stories', path: '/stories' },
         { name: 'Rewards', path: '/rewards' },
         { name: 'Premium', path: '/premium' },

@@ -28,38 +28,53 @@ function ScrollToTop() {
   return null;
 }
 
+import ArchivistSanctuary from './pages/ArchivistSanctuary';
+
+function AppContent() {
+  const location = useLocation();
+  const hideFooterFolders = ['/sanctuary'];
+  const showFooter = !hideFooterFolders.includes(location.pathname);
+
+  return (
+    <>
+      <ScrollToTop />
+      <Navbar />
+      <CartDrawer />
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/sanctuary" element={<ArchivistSanctuary />} />
+          <Route path="/menu" element={<Menu />} />
+          <Route path="/gifts" element={<Gifts />} />
+          <Route path="/sommelier" element={<Sommelier />} />
+          <Route path="/chai-masala" element={<ChaiMasala />} />
+          <Route path="/estates" element={<Estates />} />
+          <Route path="/stories" element={<Stories />} />
+          <Route path="/rewards" element={<Rewards />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/invoice/:orderId" element={<Invoice />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/premium" element={<Premium />} />
+          <Route path="/reservation" element={<Reservation />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Routes>
+      </main>
+      {showFooter && <Footer />}
+    </>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
         <Router>
-          <ScrollToTop />
-          <Navbar />
-          <CartDrawer />
-          <main>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/menu" element={<Menu />} />
-            <Route path="/gifts" element={<Gifts />} />
-            <Route path="/sommelier" element={<Sommelier />} />
-            <Route path="/chai-masala" element={<ChaiMasala />} />
-            <Route path="/estates" element={<Estates />} />
-            <Route path="/stories" element={<Stories />} />
-            <Route path="/rewards" element={<Rewards />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/invoice/:orderId" element={<Invoice />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/premium" element={<Premium />} />
-            <Route path="/reservation" element={<Reservation />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-          </Routes>
-        </main>
-        <Footer />
-      </Router>
-    </CartProvider>
-  </AuthProvider>
-);
+          <AppContent />
+        </Router>
+      </CartProvider>
+    </AuthProvider>
+  );
 }
 
 export default App;

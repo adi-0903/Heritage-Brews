@@ -68,3 +68,33 @@ class GiftHamperDetailView(generics.RetrieveAPIView):
     serializer_class = GiftHamperDetailSerializer
     permission_classes = [AllowAny]
     lookup_field = 'slug'
+
+
+from rest_framework.views import APIView
+from .ai_service import get_archivist_response
+
+class ArchivistChatView(APIView):
+    """Archivist AI: A royal Indian sommelier concierge."""
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        message = request.data.get('message')
+        history = request.data.get('history', [])
+        
+        if not message:
+            return Response({"error": "No message provided"}, status=400)
+        
+        try:
+            # Fetch catalog context for the Archivist's autonomous agency
+            products = Product.objects.filter(is_available=True)
+            product_list = [f"ID:{p.id} - {p.name} (₹{p.price})" for p in products]
+            product_context = "\n".join(product_list)
+            
+            response_text = get_archivist_response(message, history, product_context)
+            return Response({
+                "response": response_text,
+                "role": "The Archivist",
+                "dialect": "Royal Indian Sommelier"
+            })
+        except Exception as e:
+            return Response({"message": str(e)}, status=500)

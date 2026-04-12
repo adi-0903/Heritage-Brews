@@ -9,4 +9,5 @@ urlpatterns = [
     path('curations/', views.SommelierCurationListView.as_view(), name='sommelier-curation-list'),
     path('gifts/', views.GiftHamperListView.as_view(), name='gift-list'),
     path('gifts/<slug:slug>/', views.GiftHamperDetailView.as_view(), name='gift-detail'),
+    path('ai/chat/', views.ArchivistChatView.as_view(), name='archivist-chat'),
 ]
