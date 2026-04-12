@@ -125,7 +125,7 @@ const ArchivistSanctuary = () => {
 
             {/* Scrollable Editorial Ledger */}
             <div className="flex-1 overflow-y-auto relative z-10 px-6 md:px-0">
-                <div className="max-w-4xl mx-auto space-y-20 pb-80">
+                <div className="max-w-4xl mx-auto space-y-24 pb-80 px-16">
                     <AnimatePresence mode="popLayout">
                         {history.map((chat, i) => (
                             <motion.div 
@@ -135,17 +135,18 @@ const ArchivistSanctuary = () => {
                                 transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                                 className={`flex flex-col ${chat.role === 'user' ? 'items-center' : 'items-start'} w-full`}
                             >
-                                <div className={`relative px-10 py-6 transition-all duration-1000 ${
+                                <div className={`relative transition-all duration-1000 ${
                                     chat.role === 'user' 
-                                    ? 'text-[#F4C430] italic text-3xl font-headline tracking-tight text-center max-w-5xl drop-shadow-[0_0_15px_rgba(244,196,48,0.2)]' 
-                                    : 'text-[#f5e6cc] text-2xl font-headline leading-[1.7] max-w-[90%] drop-shadow-lg opacity-90'
+                                    ? 'text-[#F4C430] italic text-3xl font-headline tracking-tight text-center max-w-5xl px-12 py-8' 
+                                    : 'text-[#FFF8F2] text-2xl font-headline leading-[1.9] max-w-[95%] bg-[#0a0800]/90 backdrop-blur-3xl px-16 py-14 rounded-[2.5rem] border border-[#F4C430]/20 shadow-[0_40px_120px_rgba(0,0,0,1)]'
                                 }`}>
                                     {chat.role === 'model' && (
-                                        <div className="absolute -left-12 top-8 opacity-20">
-                                            <span className="material-symbols-outlined text-5xl text-[#F4C430]">policy</span>
+                                        <div className="absolute -left-8 -top-8 bg-gradient-to-br from-[#860603] to-[#4a0301] w-20 h-20 rounded-full flex items-center justify-center border-2 border-[#F4C430]/40 shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-20">
+                                            <span className="material-symbols-outlined text-4xl text-[#F4C430] drop-shadow-md">policy</span>
+                                            <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/royal-lineage.png')] rounded-full" />
                                         </div>
                                     )}
-                                    <p>{chat.parts[0].text}</p>
+                                    <p className="drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] relative z-10">{chat.parts[0].text}</p>
                                 </div>
                             </motion.div>
                         ))}
