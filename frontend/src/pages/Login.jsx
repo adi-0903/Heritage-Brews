@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function Login() {
     const [credentials, setCredentials] = useState({ username: '', password: '' });
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     
-    const { login } = useAuth();
+    const { login, googleLogin } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -29,6 +30,23 @@ export default function Login() {
             setError(result.error || 'Invalid credentials. The archives do not recognize this entry.');
         }
         setLoading(false);
+    };
+
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setLoading(true);
+        setError(null);
+        const result = await googleLogin(credentialResponse.credential);
+        if (result.success) {
+            const from = location.state?.from?.pathname || '/rewards';
+            navigate(from, { replace: true });
+        } else {
+            setError(result.error || 'Google sign-in failed. Please try again.');
+        }
+        setLoading(false);
+    };
+
+    const handleGoogleError = () => {
+        setError('Google authentication was closed or failed.');
     };
 
     return (
@@ -87,6 +105,22 @@ export default function Login() {
                     >
                         {loading ? 'Authenticating...' : 'Unseal Access'}
                     </button>
+                    
+                    <div className="relative flex items-center py-4">
+                        <div className="flex-grow border-t border-[#F4C430]/20"></div>
+                        <span className="flex-shrink-0 mx-4 text-[#c4bcae] text-xs uppercase tracking-widest">Or</span>
+                        <div className="flex-grow border-t border-[#F4C430]/20"></div>
+                    </div>
+
+                    <div className="flex justify-center">
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={handleGoogleError}
+                            theme="filled_black"
+                            shape="rectangular"
+                            type="standard"
+                        />
+                    </div>
                 </form>
 
                 <div className="mt-12 text-center space-y-4">

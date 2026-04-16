@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function Register() {
     const [formData, setFormData] = useState({
@@ -12,7 +13,7 @@ export default function Register() {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     
-    const { register } = useAuth();
+    const { register, googleLogin } = useAuth();
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -42,6 +43,22 @@ export default function Register() {
             setError(result.error || 'Failed to create your identity. Please try another name.');
         }
         setLoading(false);
+    };
+
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setLoading(true);
+        setError(null);
+        const result = await googleLogin(credentialResponse.credential);
+        if (result.success) {
+            navigate('/rewards');
+        } else {
+            setError(result.error || 'Google sign-up failed. Please try again.');
+        }
+        setLoading(false);
+    };
+
+    const handleGoogleError = () => {
+        setError('Google authentication was closed or failed.');
     };
 
     return (
@@ -126,6 +143,22 @@ export default function Register() {
                     >
                         {loading ? 'Consulting the Oracle...' : 'Inscribe Your Name'}
                     </button>
+
+                    <div className="relative flex items-center py-4">
+                        <div className="flex-grow border-t border-[#F4C430]/20"></div>
+                        <span className="flex-shrink-0 mx-4 text-[#c4bcae] text-xs uppercase tracking-widest">Or Register With</span>
+                        <div className="flex-grow border-t border-[#F4C430]/20"></div>
+                    </div>
+
+                    <div className="flex justify-center">
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={handleGoogleError}
+                            theme="filled_black"
+                            shape="rectangular"
+                            type="standard"
+                        />
+                    </div>
                 </form>
 
                 <div className="mt-12 text-center space-y-4">

@@ -100,3 +100,6 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+class GoogleLoginSerializer(serializers.Serializer):
+    credential = serializers.CharField(required=True)

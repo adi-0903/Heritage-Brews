@@ -40,6 +40,19 @@ export function AuthProvider({ children }) {
         }
     };
 
+    const googleLogin = async (credential) => {
+        try {
+            const data = await api.post('auth/google/', { credential });
+            localStorage.setItem('access_token', data.tokens.access);
+            localStorage.setItem('refresh_token', data.tokens.refresh);
+            setAccessToken(data.tokens.access);
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    };
+
+
     const register = async (userData) => {
         try {
             const data = await api.post('auth/register/', userData);
@@ -63,6 +76,7 @@ export function AuthProvider({ children }) {
         user,
         loading,
         login,
+        googleLogin,
         register,
         logout,
         refreshProfile: fetchUserProfile,
