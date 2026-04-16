@@ -113,7 +113,7 @@ npm run dev
 This archive and its artisanal intellectual property are preserved under the **MIT License**.
 
 <p align="center">
-  <img src="public/images/Royal Seal.png" alt="Royal Seal" width="180" />
+  <img src="frontend/public/images/Royal Seal.png" alt="Royal Seal" width="180" />
   <br/>
   <strong>Heritage Brews Archivists</strong><br/>
   <em>Preserving the taste of time, one flush at a time.</em>
