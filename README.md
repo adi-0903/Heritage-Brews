@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./public/images/Logo_new.png" alt="Heritage Brews Logo" width="320" />
+  <img src="frontend/public/images/Logo_new.png" alt="Heritage Brews Logo" width="320" />
 </p>
 
 <h1 align="center">🏛️ Heritage Brews: The Archival Sanctuary</h1>
