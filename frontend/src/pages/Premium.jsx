@@ -4,7 +4,7 @@ import { CartContext } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
 
-const API_BASE = "http://localhost:8000/api/memberships";
+const API_BASE = (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "") : "http://localhost:8000") + "/api/memberships";
 
 export default function Premium() {
     const { user } = useAuth();
@@ -98,7 +98,7 @@ export default function Premium() {
             {/* Cinematic Heritage Background */}
             <div className="absolute inset-0 z-0 overflow-hidden">
                 <img 
-                    src={`http://localhost:8000/api/weather/archive-image/?file=premium_lineage_backdrop_1775924148863.png`} 
+                    src={`${(import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "") : "http://localhost:8000")}/api/weather/archive-image/?file=premium_lineage_backdrop_1775924148863.png`} 
                     className="w-full h-full object-cover opacity-40 saturate-[0.5] contrast-[1.1] scale-105"
                     alt="Himalayan Heritage"
                 />
