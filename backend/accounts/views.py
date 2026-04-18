@@ -106,21 +106,38 @@ class GoogleLoginView(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        token = serializer.validated_data['credential']
+        token = serializer.validated_data.get('credential')
+        access_token_str = request.data.get('access_token')
 
         try:
-            # Verify the Google token with clock skew tolerance
-            client_id = os.environ.get('GOOGLE_CLIENT_ID', getattr(settings, 'GOOGLE_CLIENT_ID', None))
-            idinfo = id_token.verify_oauth2_token(
-                token, 
-                google_requests.Request(), 
-                client_id,
-                clock_skew_in_seconds=60
-            )
-            
-            email = idinfo.get('email')
-            given_name = idinfo.get('given_name', '')
-            family_name = idinfo.get('family_name', '')
+            if token:
+                # Verify the Google ID token
+                client_id = os.environ.get('GOOGLE_CLIENT_ID', getattr(settings, 'GOOGLE_CLIENT_ID', None))
+                idinfo = id_token.verify_oauth2_token(
+                    token, 
+                    google_requests.Request(), 
+                    client_id,
+                    clock_skew_in_seconds=60
+                )
+                email = idinfo.get('email')
+                given_name = idinfo.get('given_name', '')
+                family_name = idinfo.get('family_name', '')
+            elif access_token_str:
+                # Verify via access token by calling Google's userinfo endpoint
+                import requests
+                response = requests.get(
+                    'https://www.googleapis.com/oauth2/v3/userinfo',
+                    params={'access_token': access_token_str}
+                )
+                if not response.ok:
+                    return Response({'error': 'Invalid access token'}, status=status.HTTP_400_BAD_REQUEST)
+                
+                idinfo = response.json()
+                email = idinfo.get('email')
+                given_name = idinfo.get('given_name', '')
+                family_name = idinfo.get('family_name', '')
+            else:
+                return Response({'error': 'No token provided'}, status=status.HTTP_400_BAD_REQUEST)
             
             # Check or create user
             user = User.objects.filter(email=email).first()
@@ -137,9 +154,6 @@ class GoogleLoginView(generics.GenericAPIView):
                     last_name=family_name,
                     password=get_random_string(32)
                 )
-            else:
-                # Optionally update user's profile with latest google data
-                pass
             
             # Generate local JWT tokens
             refresh = RefreshToken.for_user(user)
@@ -152,6 +166,6 @@ class GoogleLoginView(generics.GenericAPIView):
                 }
             }, status=status.HTTP_200_OK)
 
-        except ValueError as e:
+        except Exception as e:
             print("Google Token Error:", str(e))
-            return Response({'error': f'Invalid Google token: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': f'Google authentication failed: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { GoogleLogin } from '@react-oauth/google';
+import CreativeGoogleButton from '../components/CreativeGoogleButton';
 
 export default function Register() {
+    // ... existing state ...
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -45,10 +46,10 @@ export default function Register() {
         setLoading(false);
     };
 
-    const handleGoogleSuccess = async (credentialResponse) => {
+    const handleGoogleSuccess = async (tokenResponse) => {
         setLoading(true);
         setError(null);
-        const result = await googleLogin(credentialResponse.credential);
+        const result = await googleLogin(tokenResponse);
         if (result.success) {
             navigate('/rewards');
         } else {
@@ -151,12 +152,10 @@ export default function Register() {
                     </div>
 
                     <div className="flex justify-center">
-                        <GoogleLogin
+                        <CreativeGoogleButton 
+                            label="Join via Google"
                             onSuccess={handleGoogleSuccess}
                             onError={handleGoogleError}
-                            theme="filled_black"
-                            shape="rectangular"
-                            type="standard"
                         />
                     </div>
                 </form>

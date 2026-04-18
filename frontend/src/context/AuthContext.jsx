@@ -40,15 +40,20 @@ export function AuthProvider({ children }) {
         }
     };
 
-    const googleLogin = async (credential) => {
+    const googleLogin = async (authData) => {
         try {
-            const data = await api.post('auth/google/', { credential });
+            // authData can be a string (credential) or an object { access_token }
+            const payload = typeof authData === 'string' 
+                ? { credential: authData } 
+                : { access_token: authData.access_token };
+
+            const data = await api.post('auth/google/', payload);
             localStorage.setItem('access_token', data.tokens.access);
             localStorage.setItem('refresh_token', data.tokens.refresh);
             setAccessToken(data.tokens.access);
             return { success: true };
         } catch (error) {
-            return { success: false, error: error.message };
+            return { success: false, error: error.response?.data?.error || error.message };
         }
     };
 

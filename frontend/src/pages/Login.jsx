@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { GoogleLogin } from '@react-oauth/google';
+import CreativeGoogleButton from '../components/CreativeGoogleButton';
 
 export default function Login() {
     const [credentials, setCredentials] = useState({ username: '', password: '' });
@@ -32,10 +32,10 @@ export default function Login() {
         setLoading(false);
     };
 
-    const handleGoogleSuccess = async (credentialResponse) => {
+    const handleGoogleSuccess = async (tokenResponse) => {
         setLoading(true);
         setError(null);
-        const result = await googleLogin(credentialResponse.credential);
+        const result = await googleLogin(tokenResponse);
         if (result.success) {
             const from = location.state?.from?.pathname || '/rewards';
             navigate(from, { replace: true });
@@ -113,12 +113,10 @@ export default function Login() {
                     </div>
 
                     <div className="flex justify-center">
-                        <GoogleLogin
+                        <CreativeGoogleButton 
+                            label="Enter via Google"
                             onSuccess={handleGoogleSuccess}
                             onError={handleGoogleError}
-                            theme="filled_black"
-                            shape="rectangular"
-                            type="standard"
                         />
                     </div>
                 </form>
