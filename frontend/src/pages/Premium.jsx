@@ -98,7 +98,7 @@ export default function Premium() {
             {/* Cinematic Heritage Background */}
             <div className="absolute inset-0 z-0 overflow-hidden">
                 <img 
-                    src={`${(import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "") : "http://localhost:8000")}/api/weather/archive-image/?file=premium_lineage_backdrop_1775924148863.png`} 
+                    src={`/images/premium_lineage_backdrop_1775924148863.png`} 
                     className="w-full h-full object-cover opacity-40 saturate-[0.5] contrast-[1.1] scale-105"
                     alt="Himalayan Heritage"
                 />

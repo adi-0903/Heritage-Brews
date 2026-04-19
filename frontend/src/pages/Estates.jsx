@@ -11,7 +11,7 @@ const ESTATES_CONFIG = [
         id: 'darjeeling',
         name: 'Makaibari Estate',
         location: 'High-Alt Darjeeling',
-        image: `${API_BASE}/archive-image/?file=makaibari_darjeeling_render_v2_1775905953067.png`,
+        image: `/images/makaibari_darjeeling_render_v2_1775905953067.png`,
         desc: '"Guardian of the same 40 acres his great-grandfather cleared in 1888."',
         history: "Makaibari is a living legend. Founded in 1859, it became the world's first tea estate to be certified Organic in 1988 and Biodynamic in 1993. The estate is a permaculture paradise, where 70% of the land is maintained as a tropical rainforest, fostering a unique microclimate that produces the legendary 'Silver Tips Imperial' plucked only under the full moon.",
         altitude: "4,500 - 6,000 ft",
@@ -22,7 +22,7 @@ const ESTATES_CONFIG = [
         id: 'assam',
         name: 'Dibrugarh Estate',
         location: 'Brahmaputra Valley',
-        image: `${API_BASE}/archive-image/?file=dibrugarh_assam_render_1775905900779.png`,
+        image: `/images/dibrugarh_assam_render_1775905900779.png`,
         desc: '"Specializing in the rare "Golden Tips" and robust malty flushes."',
         history: "Set in the heart of the Brahmaputra Valley, the Dibrugarh Estate is renowned for its intense, malty character. The rich alluvial soil of the valley floor, combined with extreme humidity and heat, forces the tea leaves to produce a high concentration of polyphenols, resulting in the world-famous 'Assam Strength' favored by master blenders for centuries.",
         altitude: "300 - 600 ft",
@@ -33,7 +33,7 @@ const ESTATES_CONFIG = [
         id: 'nilgiri',
         name: 'Coonoor Estate',
         location: 'Blue Mountains',
-        image: `${API_BASE}/archive-image/?file=coonoor_nilgiri_render_v2_1775905966904.png`,
+        image: `/images/coonoor_nilgiri_render_v2_1775905966904.png`,
         desc: '"Grown at 8,000 feet, offering a crisp, aromatic profile with notes of citrus."',
         history: "High in the clouds of the Western Ghats, the Coonoor Estate represents the elegance of the 'Blue Mountains'. The high altitude and cool temperatures slow the growth of the bush, concentrating the essential oils. The result is a 'Winter Frost' tea that is light, fragrant, and almost creamy, with a distinct floral citrus note that is found nowhere else on earth.",
         altitude: "6,500 - 8,000 ft",
@@ -87,7 +87,7 @@ export default function Estates() {
             estate: 'Darjeeling',
             desc: 'A ethereal First Flush harvested at dawn. Notes of muscatel and mountain mist.',
             price: 4500,
-            image: `${API_BASE}/archive-image/?file=makaibari_first_flush_macro_1775918544000_1775918704957.png`,
+            image: `/images/makaibari_first_flush_macro_1775918544000_1775918704957.png`,
             dna: { elevation: '4,500ft', soil: 'Himalayan Loam', oxid: '15%' },
             archival: {
                 batch: 'HB-MK-24-001',
@@ -102,7 +102,7 @@ export default function Estates() {
             estate: 'Darjeeling',
             desc: 'Ethereal Silver Needles plucked only under a full moon. The pinnacle of white tea.',
             price: 8500,
-            image: `${API_BASE}/archive-image/?file=moonlight_imperial_white_macro_1775919340083.png`,
+            image: `/images/moonlight_imperial_white_macro_1775919340083.png`,
             dna: { elevation: '6,800ft', soil: 'Mica-heavy', oxid: '5%' },
             archival: {
                 batch: 'HB-MK-24-MOON',
@@ -117,7 +117,7 @@ export default function Estates() {
             estate: 'Assam',
             desc: 'Rare Golden Tips with a robust, malty heart. The physical weight of the valley.',
             price: 3200,
-            image: `${API_BASE}/archive-image/?file=dibrugarh_golden_tips_macro_1775918544002_1775918734056.png`,
+            image: `/images/dibrugarh_golden_tips_macro_1775918544002_1775918734056.png`,
             dna: { elevation: '150ft', soil: 'River Alluvial', oxid: '95%' },
             archival: {
                 batch: 'HB-DB-24-V92',
@@ -132,7 +132,7 @@ export default function Estates() {
             estate: 'Assam',
             desc: 'Wood-smoked black tea using Himalayan cedar. An ancient, robust flavor profile.',
             price: 5200,
-            image: `${API_BASE}/archive-image/?file=ancestral_smoke_assam_macro_1775919355456.png`,
+            image: `/images/ancestral_smoke_assam_macro_1775919355456.png`,
             dna: { elevation: '200ft', soil: 'Iron-rich', oxid: '100%' },
             archival: {
                 batch: 'HB-DB-24-SMK',
@@ -147,7 +147,7 @@ export default function Estates() {
             estate: 'Nilgiri',
             desc: 'A crystalline winter harvest. Crisp, aromatic, and steeped in high-alt history.',
             price: 3800,
-            image: `${API_BASE}/archive-image/?file=coonoor_frost_tea_macro_1775918544004_1775918760868.png`,
+            image: `/images/coonoor_frost_tea_macro_1775918544004_1775918760868.png`,
             dna: { elevation: '8,000ft', soil: 'Black Peat', oxid: '40%' },
             archival: {
                 batch: 'HB-CN-24-F04',
@@ -162,7 +162,7 @@ export default function Estates() {
             estate: 'Nilgiri',
             desc: 'Vibrant winter green tea needles. Cold-processed for absolute clarity.',
             price: 4100,
-            image: `${API_BASE}/archive-image/?file=emerald_frost_nilgiri_macro_1775919373586.png`,
+            image: `/images/emerald_frost_nilgiri_macro_1775919373586.png`,
             dna: { elevation: '7,500ft', soil: 'Clay-slate', oxid: '0%' },
             archival: {
                 batch: 'HB-CN-24-ICE',
@@ -491,7 +491,7 @@ export default function Estates() {
             {/* Cinematic Library Backdrop & Final CTA */}
             <section className="relative py-48 overflow-hidden bg-[#0d0a08]">
                 <div className="absolute inset-0 z-0">
-                    <img src={`${API_BASE}/archive-image/?file=cinematic_library_background.png`} className="w-full h-full object-cover brightness-[0.2] saturate-[0.6] scale-105" alt="Archival Background" />
+                    <img src={`/images/cinematic_library_background.png`} className="w-full h-full object-cover brightness-[0.2] saturate-[0.6] scale-105" alt="Archival Background" />
                     <div className="absolute inset-0 bg-gradient-to-b from-[#0d0a08] via-transparent to-[#120e0a]"></div>
                 </div>
 
