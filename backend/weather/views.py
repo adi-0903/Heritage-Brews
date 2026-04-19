@@ -55,8 +55,9 @@ class WeatherProxyView(APIView):
             if not data:
                 if api_key:
                     try:
-                        url = f"https://api.openweathermap.org/data/2.5/weather?lat={coords['lat']}&lon={coords['lon']}&appid={api_key}&units=metric"
-                        response = requests.get(url, timeout=5)
+                        clean_api_key = api_key.strip("'\" \t\r\n")
+                        url = f"https://api.openweathermap.org/data/2.5/weather?lat={coords['lat']}&lon={coords['lon']}&appid={clean_api_key}&units=metric"
+                        response = requests.get(url, timeout=10)
                         weather_json = response.json()
                         
                         if response.status_code == 200:
@@ -67,14 +68,18 @@ class WeatherProxyView(APIView):
                                 'is_live': True
                             }
                         else:
-                            print(f"API Error for {slug}: {weather_json.get('message')}")
+                            err_msg = weather_json.get('message', 'Unknown Error')
+                            print(f"API Error for {slug}: {err_msg}")
                             data = self.get_mock_weather(slug)
+                            data['error_reason'] = f"Status {response.status_code}: {err_msg}"
                     except Exception as e:
                         print(f"Weather fetch failed for {slug}: {e}")
                         data = self.get_mock_weather(slug)
+                        data['error_reason'] = f"Exception: {str(e)}"
                 else:
                     # Fallback to Mocked Atmosphere if no key exists
                     data = self.get_mock_weather(slug)
+                    data['error_reason'] = "OPENWEATHER_API_KEY is missing or evaluated to None"
                 
                 # Cache for 1 hour to preserve API integrity
                 cache.set(cache_key, data, 3600)
