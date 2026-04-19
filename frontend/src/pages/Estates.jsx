@@ -62,10 +62,55 @@ export default function Estates() {
 
     const fetchTelemetry = async () => {
         try {
-            const data = await api.get('weather/telemetry/');
-            setWeather(data.estates || {});
+            const ESTATES_COORDS = {
+                'darjeeling': { lat: 27.0371, lon: 88.2636 },
+                'assam': { lat: 26.7509, lon: 94.2037 },
+                'nilgiri': { lat: 11.3530, lon: 76.7950 }
+            };
+
+            const getMockedWeather = (slug) => {
+                const conditions = [
+                    { condition: 'Rain', description: 'misty mountain rain', tempRange: [16, 22] },
+                    { condition: 'Clouds', description: 'heavy rolling mist', tempRange: [18, 24] },
+                    { condition: 'Clear', description: 'golden hour clarity', tempRange: [22, 28] },
+                    { condition: 'Drizzle', description: 'archival soft dew', tempRange: [17, 21] },
+                ];
+                const index = slug.length % conditions.length;
+                const selected = conditions[index];
+                const temp = Math.floor(Math.random() * (selected.tempRange[1] - selected.tempRange[0] + 1)) + selected.tempRange[0];
+                return { temp, condition: selected.condition, description: selected.description, is_live: false };
+            };
+
+            const results = {};
+            const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+            
+            for (const [slug, coords] of Object.entries(ESTATES_COORDS)) {
+                let data = null;
+                if (apiKey) {
+                    try {
+                        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${coords.lat}&lon=${coords.lon}&appid=${apiKey}&units=metric`);
+                        const weatherJson = await res.json();
+                        if (res.ok) {
+                            data = {
+                                temp: Math.round(weatherJson.main.temp),
+                                condition: weatherJson.weather[0].main,
+                                description: weatherJson.weather[0].description,
+                                is_live: true
+                            };
+                        }
+                    } catch (e) {
+                        console.error(`Weather fetch failed for ${slug}:`, e);
+                    }
+                }
+                
+                if (!data) data = getMockedWeather(slug);
+                
+                results[slug] = data;
+            }
+            
+            setWeather(results);
         } catch (error) {
-            console.error('Failed to fetch archival telemetry:', error);
+            console.error('Failed to resolve frontend telemetry:', error);
         } finally {
             setLoading(false);
         }
