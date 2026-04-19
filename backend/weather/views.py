@@ -18,8 +18,8 @@ class ArchiveImageProxy(View):
         if not filename:
             raise Http404("Filename required.")
 
-        # Restricted path to the local archival vault
-        BRAIN_PATH = r"C:\Users\HP\.gemini\antigravity\brain\f666601a-334c-479b-a1cf-2917e236bee4"
+        # Path to frontend public images
+        BRAIN_PATH = os.path.join(settings.BASE_DIR, '..', 'frontend', 'public', 'images')
         file_path = os.path.join(BRAIN_PATH, filename)
 
         if not os.path.exists(file_path):
