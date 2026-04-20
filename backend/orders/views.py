@@ -1,6 +1,6 @@
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
@@ -299,6 +299,35 @@ class OrderDetailView(APIView):
         return Response(serializer.data)
 
 
+class AdminOrderListView(APIView):
+    """GET /api/orders/admin/all/ — List all orders for admins"""
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        orders = Order.objects.all().order_by('-created_at')
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
+
+
+class AdminOrderUpdateView(APIView):
+    """PUT /api/orders/admin/<order_number>/ — Update order status for admins"""
+    permission_classes = [IsAdminUser]
+
+    def put(self, request, order_number):
+        order = get_object_or_404(Order, order_number=order_number)
+        status_val = request.data.get('status')
+        payment_status_val = request.data.get('payment_status')
+        
+        if status_val:
+            order.status = status_val
+        if payment_status_val:
+            order.payment_status = payment_status_val
+            
+        order.save()
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
+
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def payment_initiate(request):
@@ -353,3 +382,14 @@ def payment_verify(request):
         'order_number': order.order_number,
         'status': order.status,
     })
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def admin_user_orders_view(request, user_id):
+    """
+    GET /api/orders/admin/user/<user_id>/
+    Returns all orders for a specific user.
+    """
+    orders = Order.objects.filter(user_id=user_id).order_by('-created_at')
+    serializer = OrderSerializer(orders, many=True)
+    return Response(serializer.data)

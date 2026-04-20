@@ -28,10 +28,10 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'username', 'email', 'first_name', 'last_name', 
+            'id', 'username', 'email', 'first_name', 'last_name', 'is_staff',
             'profile', 'tokens', 'loyalty_tier', 'loyalty_tier_display', 'next_tier_tokens'
         ]
-        read_only_fields = ['id', 'tokens', 'loyalty_tier', 'loyalty_tier_display', 'next_tier_tokens']
+        read_only_fields = ['id', 'tokens', 'loyalty_tier', 'loyalty_tier_display', 'next_tier_tokens', 'is_staff']
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -103,3 +103,19 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
 
 class GoogleLoginSerializer(serializers.Serializer):
     credential = serializers.CharField(required=False, allow_null=True)
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    order_count = serializers.IntegerField(source='orders.count', read_only=True)
+    total_spent = serializers.SerializerMethodField()
+    date_joined = serializers.DateTimeField(format="%d %B %Y", read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'username', 'email', 'first_name', 'last_name', 
+            'order_count', 'total_spent', 'date_joined'
+        ]
+
+    def get_total_spent(self, obj):
+        from django.db.models import Sum
+        return obj.orders.filter(payment_status='paid').aggregate(total=Sum('total'))['total'] or 0

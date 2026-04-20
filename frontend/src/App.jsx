@@ -18,6 +18,7 @@ import Premium from './pages/Premium';
 import Reservation from './pages/Reservation';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AdminDashboard from './pages/Admin/AdminDashboard';
 
 import Profile from './pages/Profile';
 import Invoice from './pages/Invoice';
@@ -32,14 +33,14 @@ import ArchivistSanctuary from './pages/ArchivistSanctuary';
 
 function AppContent() {
   const location = useLocation();
-  const hideFooterFolders = ['/sanctuary'];
-  const showFooter = !hideFooterFolders.includes(location.pathname);
+  const minimalRoutes = ['/admin', '/sanctuary'];
+  const isMinimal = minimalRoutes.some(route => location.pathname.startsWith(route));
 
   return (
     <>
       <ScrollToTop />
-      <Navbar />
-      <CartDrawer />
+      {!isMinimal && <Navbar />}
+      {!isMinimal && <CartDrawer />}
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -58,9 +59,10 @@ function AppContent() {
           <Route path="/reservation" element={<Reservation />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </main>
-      {showFooter && <Footer />}
+      {!isMinimal && <Footer />}
     </>
   );
 }

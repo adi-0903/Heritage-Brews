@@ -8,6 +8,7 @@ export default function Navbar() {
     const { totalItems } = useCart();
     const location = useLocation();
     const [scrolled, setScrolled] = useState(false);
+    const isAdminPage = location.pathname.startsWith('/admin');
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -94,18 +95,20 @@ export default function Navbar() {
                             </div>
                         </Link>
 
-                        {/* Navigation Center */}
-                        <nav className="hidden xl:flex items-center justify-center space-x-10 flex-grow px-8">
-                            {navLinks.map((link) => (
-                                <Link
-                                    key={link.path}
-                                    to={link.path}
-                                    className={`nav-text text-sm uppercase tracking-[0.15em] font-medium nav-underline whitespace-nowrap ${location.pathname === link.path ? 'text-[#F4C430] active' : 'text-[#fcf9ee]/80 hover:text-[#F4C430]'}`}
-                                >
-                                    {link.name}
-                                </Link>
-                            ))}
-                        </nav>
+                        {/* Navigation Center - Hidden on Admin */}
+                        {!isAdminPage && (
+                            <nav className="hidden xl:flex items-center justify-center space-x-10 flex-grow px-8">
+                                {navLinks.map((link) => (
+                                    <Link
+                                        key={link.path}
+                                        to={link.path}
+                                        className={`nav-text text-sm uppercase tracking-[0.15em] font-medium nav-underline whitespace-nowrap ${location.pathname === link.path ? 'text-[#F4C430] active' : 'text-[#fcf9ee]/80 hover:text-[#F4C430]'}`}
+                                    >
+                                        {link.name}
+                                    </Link>
+                                ))}
+                            </nav>
+                        )}
 
                         {/* Actions Right */}
                         <div className="flex items-center space-x-4 lg:space-x-6 flex-shrink-0">
@@ -123,6 +126,14 @@ export default function Navbar() {
                                             <div className="bg-[#1a1510] border border-[#F4C430]/20 p-6 min-w-[200px] shadow-2xl">
                                                 <p className="nav-text text-[10px] uppercase tracking-widest text-[#F4C430]/60 mb-1">Authenticated Patron</p>
                                                 <p className="font-headline text-lg text-[#F4C430] mb-4 border-b border-[#F4C430]/10 pb-2">{user?.username}</p>
+                                                
+                                                {user?.is_staff && (
+                                                    <Link to="/admin" className="block w-full text-left nav-text text-[11px] uppercase tracking-widest text-[#F4C430] hover:text-white transition-colors flex items-center gap-3 mb-4">
+                                                        <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
+                                                        Royal Registry
+                                                    </Link>
+                                                )}
+
                                                 <Link to="/profile" className="block w-full text-left nav-text text-[11px] uppercase tracking-widest text-white/80 hover:text-[#F4C430] transition-colors flex items-center gap-3 mb-4">
                                                     <span className="material-symbols-outlined text-lg">history_edu</span>
                                                     Royal Ledger
@@ -144,20 +155,24 @@ export default function Navbar() {
                                 )}
                             </div>
 
-                            {/* Cart */}
-                            <Link to="/checkout" className="text-[#F4C430] hover:text-white transition-colors relative flex items-center pr-2">
-                                <span className="material-symbols-outlined text-[30px]" style={{ fontVariationSettings: "'FILL' 1" }}>shopping_bag</span>
-                                {totalItems > 0 && (
-                                    <span className="absolute -top-1.5 right-0 bg-red-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-lg border border-[#1a1510]">
-                                        {totalItems}
-                                    </span>
-                                )}
-                            </Link>
+                            {/* Cart - Hidden on Admin */}
+                            {!isAdminPage && (
+                                <Link to="/checkout" className="text-[#F4C430] hover:text-white transition-colors relative flex items-center pr-2">
+                                    <span className="material-symbols-outlined text-[30px]" style={{ fontVariationSettings: "'FILL' 1" }}>shopping_bag</span>
+                                    {totalItems > 0 && (
+                                        <span className="absolute -top-1.5 right-0 bg-red-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-lg border border-[#1a1510]">
+                                            {totalItems}
+                                        </span>
+                                    )}
+                                </Link>
+                            )}
 
-                            {/* Reserve Button */}
-                            <Link to="/reservation" className="flex items-center justify-center px-8 py-3 border border-[#F4C430] bg-[#F4C430]/5 text-[#F4C430] hover:bg-[#F4C430] hover:text-[#120e0a] transition-all duration-300 nav-text text-[12px] font-bold uppercase tracking-[0.2em] shadow-[0_0_10px_rgba(244,196,48,0.05)] hover:shadow-[0_0_20px_rgba(244,196,48,0.3)]">
-                                Reserve
-                            </Link>
+                            {/* Reserve Button - Hidden on Admin */}
+                            {!isAdminPage && (
+                                <Link to="/reservation" className="flex items-center justify-center px-8 py-3 border border-[#F4C430] bg-[#F4C430]/5 text-[#F4C430] hover:bg-[#F4C430] hover:text-[#120e0a] transition-all duration-300 nav-text text-[12px] font-bold uppercase tracking-[0.2em] shadow-[0_0_10px_rgba(244,196,48,0.05)] hover:shadow-[0_0_20px_rgba(244,196,48,0.3)]">
+                                    Reserve
+                                </Link>
+                            )}
                         </div>
 
                         {/* Mobile Menu Icon */}

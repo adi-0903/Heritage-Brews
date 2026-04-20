@@ -1,6 +1,6 @@
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import Reservation
@@ -35,6 +35,30 @@ class ReservationListView(generics.ListAPIView):
 
     def get_queryset(self):
         return Reservation.objects.filter(user=self.request.user)
+
+
+class AdminReservationListView(generics.ListAPIView):
+    """GET /api/reservations/admin/all/ — List all reservations for admins."""
+    serializer_class = ReservationSerializer
+    permission_classes = [IsAdminUser]
+    queryset = Reservation.objects.all().order_by('-date', '-created_at')
+
+
+class AdminReservationUpdateView(generics.UpdateAPIView):
+    """PUT /api/reservations/admin/<code>/ — Update reservation status."""
+    serializer_class = ReservationSerializer
+    permission_classes = [IsAdminUser]
+    queryset = Reservation.objects.all()
+    lookup_field = 'confirmation_code'
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        status_val = request.data.get('status')
+        if status_val:
+            instance.status = status_val
+            instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 @api_view(['GET'])

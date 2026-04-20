@@ -7,13 +7,16 @@ from django.contrib.auth.models import User
 from .serializers import (
     RegisterSerializer, UserSerializer,
     ProfileUpdateSerializer, ChangePasswordSerializer,
-    GoogleLoginSerializer
+    GoogleLoginSerializer, AdminUserSerializer
 )
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
-from django.conf import settings
-from django.utils.crypto import get_random_string
+from django.utils import timezone
+from django.db.models import Sum
 import os
+
+# Circular import prevention: import inside the view if necessary, 
+# but these are standard model imports.
 
 
 class RegisterView(generics.CreateAPIView):
@@ -169,3 +172,62 @@ class GoogleLoginView(generics.GenericAPIView):
         except Exception as e:
             print("Google Token Error:", str(e))
             return Response({'error': f'Google authentication failed: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def admin_stats_view(request):
+    """
+    GET /api/auth/admin/stats/
+    Returns live statistics for the Admin Dashboard. Restricted to staff.
+    """
+    if not request.user.is_staff:
+        return Response({'error': 'Archivist privileges required.'}, status=status.HTTP_403_FORBIDDEN)
+
+    from orders.models import Order
+    from reservations.models import Reservation
+    from catalog.models import Product
+
+    # 1. Royal Revenue (Sum of all paid orders)
+    revenue_sum = Order.objects.filter(payment_status='paid').aggregate(total=Sum('total'))['total'] or 0
+    total_revenue = f"₹{int(revenue_sum):,}"
+
+    # 2. Active Decrees (Orders not yet delivered or cancelled)
+    active_decrees = Order.objects.exclude(status__in=['delivered', 'cancelled']).count()
+
+    # 3. Haveli Occupancy (Percentage of confirmed reservations vs total)
+    total_res = Reservation.objects.count()
+    confirmed_res = Reservation.objects.filter(status='confirmed').count()
+    
+    if total_res > 0:
+        rate = (confirmed_res / total_res) * 100
+        occupancy_rate = f"{int(rate)}%"
+    else:
+        occupancy_rate = "0%"
+
+    # 4. Vault Reserves (Total available products in catalog)
+    vault_item_count = Product.objects.filter(is_available=True).count()
+    vault_reserves = f"{vault_item_count} items"
+
+    return Response({
+        'total_revenue': total_revenue,
+        'active_decrees': active_decrees,
+        'haveli_occupancy': occupancy_rate,
+        'vault_reserves': vault_reserves,
+        'revenue_delta': '+12%', # Placeholder for growth if we had historical data
+        'occupancy_delta': '+5%',
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def admin_users_list_view(request):
+    """
+    GET /api/auth/admin/users/
+    Returns a list of all patrons with their order counts and spending.
+    """
+    if not request.user.is_staff:
+        return Response({'error': 'Archivist privileges required.'}, status=status.HTTP_403_FORBIDDEN)
+
+    from .serializers import AdminUserSerializer
+    users = User.objects.all().order_by('-date_joined')
+    serializer = AdminUserSerializer(users, many=True)
+    return Response(serializer.data)
