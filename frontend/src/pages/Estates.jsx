@@ -50,6 +50,7 @@ export default function Estates() {
     const [override, setOverride] = useState(null);
     const [selectedEstate, setSelectedEstate] = useState(null);
     const [showVault, setShowVault] = useState(false);
+    const [vaultProducts, setVaultProducts] = useState([]);
     const navigate = useNavigate();
     
     // Check for premium membership in the user's registry profile
@@ -58,6 +59,7 @@ export default function Estates() {
 
     useEffect(() => {
         fetchTelemetry();
+        fetchVaultItems();
     }, []);
 
     const fetchTelemetry = async () => {
@@ -80,98 +82,52 @@ export default function Estates() {
         return '';
     };
 
-    const vaultProducts = [
-        {
-            id: 'makaibari_gold',
-            name: 'Makaibari "First Light"',
-            estate: 'Darjeeling',
-            desc: 'A ethereal First Flush harvested at dawn. Notes of muscatel and mountain mist.',
-            price: 4500,
-            image: `/images/makaibari_first_flush_macro_1775918544000_1775918704957.png`,
-            dna: { elevation: '4,500ft', soil: 'Himalayan Loam', oxid: '15%' },
-            archival: {
-                batch: 'HB-MK-24-001',
-                harvest: 'April 04, 2024',
-                luminosity: 'Waning Crescent',
-                sommelier: 'Exceptionally light cup. Hints of damp pine and wild honey.'
+    const fetchVaultItems = async () => {
+        try {
+            const data = await api.get('catalog/products/?category_name=The Estate Vault');
+            // Support both paginated and flat array responses
+            const products = Array.isArray(data) ? data : (data.results || []);
+            
+            // Fallback for UI if DB is empty or during migration
+            if (products.length === 0) {
+                setVaultProducts([
+                    {
+                        id: 'makaibari_gold_fb',
+                        name: 'Makaibari "First Light"',
+                        estate: 'Darjeeling',
+                        desc: 'A ethereal First Flush harvested at dawn. Notes of muscatel and mountain mist.',
+                        price: 4500,
+                        image: `/images/makaibari_first_flush_macro_1775918544000_1775918704957.png`,
+                        dna: { elevation: '4,500ft', soil: 'Himalayan Loam', oxid: '15%' }
+                    },
+                    {
+                        id: 'moonlight_imp_fb',
+                        name: 'Moonlight Imperial',
+                        estate: 'Darjeeling',
+                        desc: 'Ethereal Silver Needles plucked only under a full moon. The pinnacle of white tea.',
+                        price: 8500,
+                        image: `/images/moonlight_imperial_white_macro_1775919340083.png`,
+                        dna: { elevation: '6,200ft', soil: 'Virgin Forest Acidic', oxid: '0%' }
+                    }
+                ]);
+            } else {
+                setVaultProducts(products.map(p => ({
+                    ...p,
+                    estate: p.origin || 'Unknown',
+                    desc: p.description,
+                    dna: { elevation: '4,500ft+', soil: 'Estate specific', oxid: 'Varies' },
+                    archival: {
+                        batch: `HB-${p.origin?.substring(0, 2).toUpperCase() || 'HB'}-24-VAULT`,
+                        harvest: 'Seasonal Reserve',
+                        luminosity: 'Optimal Harvest',
+                        sommelier: p.description || 'A rare specimen for the discerning lineage.'
+                    }
+                })));
             }
-        },
-        {
-            id: 'moonlight_imperial',
-            name: 'Moonlight Imperial',
-            estate: 'Darjeeling',
-            desc: 'Ethereal Silver Needles plucked only under a full moon. The pinnacle of white tea.',
-            price: 8500,
-            image: `/images/moonlight_imperial_white_macro_1775919340083.png`,
-            dna: { elevation: '6,800ft', soil: 'Mica-heavy', oxid: '5%' },
-            archival: {
-                batch: 'HB-MK-24-MOON',
-                harvest: 'May 23, 2024',
-                luminosity: 'Full Moon',
-                sommelier: 'Cool, crystalline body. Notes of jasmine and night-blooming cereus.'
-            }
-        },
-        {
-            id: 'dibrugarh_tips',
-            name: 'Brahmaputra Gold',
-            estate: 'Assam',
-            desc: 'Rare Golden Tips with a robust, malty heart. The physical weight of the valley.',
-            price: 3200,
-            image: `/images/dibrugarh_golden_tips_macro_1775918544002_1775918734056.png`,
-            dna: { elevation: '150ft', soil: 'River Alluvial', oxid: '95%' },
-            archival: {
-                batch: 'HB-DB-24-V92',
-                harvest: 'May 12, 2024',
-                luminosity: 'Full Moon',
-                sommelier: 'Thick, jammy body with dark chocolate and malt finish.'
-            }
-        },
-        {
-            id: 'ancestral_smoke',
-            name: 'Ancestral Smoke',
-            estate: 'Assam',
-            desc: 'Wood-smoked black tea using Himalayan cedar. An ancient, robust flavor profile.',
-            price: 5200,
-            image: `/images/ancestral_smoke_assam_macro_1775919355456.png`,
-            dna: { elevation: '200ft', soil: 'Iron-rich', oxid: '100%' },
-            archival: {
-                batch: 'HB-DB-24-SMK',
-                harvest: 'June 02, 2024',
-                luminosity: 'New Moon',
-                sommelier: 'Smoky, leathery notes with an undertone of sweet molasses and cedar.'
-            }
-        },
-        {
-            id: 'coonoor_frost',
-            name: 'Blue Mountain Frost',
-            estate: 'Nilgiri',
-            desc: 'A crystalline winter harvest. Crisp, aromatic, and steeped in high-alt history.',
-            price: 3800,
-            image: `/images/coonoor_frost_tea_macro_1775918544004_1775918760868.png`,
-            dna: { elevation: '8,000ft', soil: 'Black Peat', oxid: '40%' },
-            archival: {
-                batch: 'HB-CN-24-F04',
-                harvest: 'January 20, 2024',
-                luminosity: 'Waxing Gibbous',
-                sommelier: 'Floral citrus with a creamy mouthfeel. Bracingly crisp.'
-            }
-        },
-        {
-            id: 'emerald_frost',
-            name: 'Emerald Frost',
-            estate: 'Nilgiri',
-            desc: 'Vibrant winter green tea needles. Cold-processed for absolute clarity.',
-            price: 4100,
-            image: `/images/emerald_frost_nilgiri_macro_1775919373586.png`,
-            dna: { elevation: '7,500ft', soil: 'Clay-slate', oxid: '0%' },
-            archival: {
-                batch: 'HB-CN-24-ICE',
-                harvest: 'February 15, 2024',
-                luminosity: 'Waxing Gibbous',
-                sommelier: 'Grass-fresh, with notes of cucumber and sweet mountain water.'
-            }
+        } catch (error) {
+            console.error('Failed to fetch the Estate Vault records:', error);
         }
-    ];
+    };
 
     const activeMembership = user?.profile?.active_membership;
     const calculateLineagePrice = (originalPrice) => {
@@ -345,20 +301,74 @@ export default function Estates() {
                                             </div>
                                         </div>
                                     </div>
-                                    <button 
-                                        onClick={() => handleAcquire(product)}
-                                        className={`group/buy relative w-full py-7 font-label uppercase text-[13px] tracking-[0.4em] font-black overflow-hidden transition-all shadow-[0_15px_30px_rgba(244,196,48,0.2)] ${
-                                            isPremium 
-                                            ? 'bg-[#F4C430] text-[#120e0a] hover:bg-white' 
-                                            : 'bg-transparent border border-[#F4C430]/40 text-[#F4C430] hover:bg-[#F4C430]/10'
-                                        }`}
-                                    >
-                                        <div className="relative z-10 flex items-center justify-center gap-4">
-                                            {!isPremium && <span className="material-symbols-outlined text-[18px]">lock</span>}
-                                            {isPremium ? 'Acquire for Archive' : 'Premium Required'}
+                                    <div className="relative group overflow-hidden h-[400px]">
+                                        <img 
+                                            src={product.image} 
+                                            alt={product.name}
+                                            className={`w-full h-full object-cover transition-all duration-1000 ${
+                                                product.stock_quantity === 0 ? 'grayscale contrast-50 brightness-[0.1] scale-100' : 'group-hover:scale-110'
+                                            }`}
+                                        />
+                                        <div className={`absolute inset-0 transition-opacity duration-1000 ${product.stock_quantity === 0 ? 'opacity-100' : 'opacity-0'}`}>
+                                            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"></div>
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <div className="border-y border-[#F4C430]/30 bg-black/40 px-10 py-4 transform -rotate-2">
+                                                        <span className="text-[#F4C430] uppercase tracking-[0.8em] text-xs font-black drop-shadow-[0_0_10px_rgba(244,196,48,0.5)]">Vault Sealed</span>
+                                                    </div>
+                                                    <span className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Reserve Depleted</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        {isPremium && <span className="absolute right-8 top-1/2 -translate-y-1/2 opacity-0 group-hover/buy:opacity-100 transition-all font-black text-2xl">→</span>}
-                                    </button>
+                                    </div>
+
+                                    <div className="p-12 flex flex-col flex-grow relative overflow-hidden">
+                                        {product.stock_quantity === 0 && (
+                                            <div className="absolute top-0 right-0 p-8">
+                                                <span className="material-symbols-outlined text-red-500/20 text-6xl rotate-12 animate-pulse">lock</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between items-start mb-6">
+                                            <h3 className={`font-headline text-3xl font-bold uppercase tracking-widest transition-colors duration-700 ${product.stock_quantity === 0 ? 'text-[#e5e2d8]/20' : 'text-[#e5e2d8]'}`}>
+                                                {product.name}
+                                            </h3>
+                                            <span className={`font-headline text-2xl font-bold transition-colors duration-700 ${product.stock_quantity === 0 ? 'text-[#F4C430]/20' : 'text-[#F4C430]'}`}>
+                                                ₹{product.price}
+                                            </span>
+                                        </div>
+                                        <p className={`font-serif text-lg leading-relaxed mb-10 line-clamp-3 transition-colors duration-700 ${product.stock_quantity === 0 ? 'text-[#c4b5a2]/20' : 'text-[#c4b5a2]'}`}>
+                                            {product.description}
+                                        </p>
+                                        
+                                        <button 
+                                            onClick={() => handleAcquire(product)}
+                                            disabled={product.stock_quantity === 0}
+                                            className={`group/buy relative w-full py-7 font-label uppercase text-[13px] tracking-[0.4em] font-black overflow-hidden transition-all shadow-xl ${
+                                                product.stock_quantity === 0
+                                                ? 'bg-red-900 border border-red-500 text-white cursor-not-allowed animate-pulse shadow-[0_0_30px_rgba(220,38,38,0.2)]'
+                                                : isPremium 
+                                                ? 'bg-[#F4C430] text-[#120e0a] hover:bg-white' 
+                                                : 'bg-transparent border border-[#F4C430]/40 text-[#F4C430] hover:bg-[#F4C430]/10'
+                                            }`}
+                                        >
+                                            {product.stock_quantity === 0 && (
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+                                            )}
+                                            <div className="relative z-10 flex items-center justify-center gap-4">
+                                                {product.stock_quantity === 0 ? (
+                                                    <>
+                                                        <span className="material-symbols-outlined text-[18px]">lock</span>
+                                                        ARCHIVE SEALED
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        {!isPremium && <span className="material-symbols-outlined text-[18px]">lock</span>}
+                                                        {isPremium ? 'Acquire for Archive' : 'Premium Required'}
+                                                    </>
+                                                )}
+                                            </div>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -420,6 +430,10 @@ export default function Estates() {
                 }
 
                 .animate-signal { animation: pulse-signal 2s infinite ease-in-out; }
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(100%); }
+                }
             `}</style>
 
             <div className="fixed inset-0 pointer-events-none indian-pattern-bg"></div>

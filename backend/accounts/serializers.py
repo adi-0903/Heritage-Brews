@@ -38,6 +38,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
     phone = serializers.CharField(write_only=True, required=False, default='')
+    email = serializers.EmailField(required=True)
     first_name = serializers.CharField(required=False, allow_blank=True, default='')
     last_name = serializers.CharField(required=False, allow_blank=True, default='')
 
@@ -48,6 +49,11 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({'password': 'Passwords do not match.'})
+        
+        email = attrs.get('email')
+        if email and User.objects.filter(email=email).exists():
+            raise serializers.ValidationError({'email': 'A patron with this email address already exists in the registry.'})
+            
         return attrs
 
     def create(self, validated_data):
@@ -84,6 +90,13 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             'first_name', 'last_name', 'email',
             'phone', 'avatar', 'default_address', 'default_city', 'default_pincode',
         ]
+
+    def validate_email(self, value):
+        """Check if the new email is already taken by another user."""
+        user = self.instance.user
+        if User.objects.filter(email=value).exclude(pk=user.pk).exists():
+            raise serializers.ValidationError('This email address is already linked to another royal account.')
+        return value
 
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', {})

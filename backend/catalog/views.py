@@ -1,11 +1,13 @@
 from rest_framework import generics
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from .models import Category, Product, SommelierCuration, GiftHamper
 from .serializers import (
     CategorySerializer, ProductListSerializer, ProductDetailSerializer,
     SommelierCurationSerializer, GiftHamperListSerializer, GiftHamperDetailSerializer,
+    AdminProductUpdateSerializer, AdminCurationUpdateSerializer, AdminHamperUpdateSerializer,
+    AdminProductCreateSerializer, AdminCurationCreateSerializer, AdminHamperCreateSerializer,
 )
 from .filters import ProductFilter, GiftHamperFilter
 
@@ -34,6 +36,82 @@ class ProductDetailView(generics.RetrieveAPIView):
     serializer_class = ProductDetailSerializer
     permission_classes = [AllowAny]
     lookup_field = 'slug'
+
+
+class AdminProductListView(generics.ListAPIView):
+    """GET /api/catalog/admin/products/ — List all products for admins."""
+    queryset = Product.objects.all().select_related('category').order_by('-created_at')
+    serializer_class = ProductListSerializer
+    permission_classes = [IsAdminUser]
+    pagination_class = None
+
+
+class AdminProductUpdateView(generics.UpdateAPIView):
+    """PATCH /api/catalog/admin/products/<pk>/ — Update product stock & price."""
+    queryset = Product.objects.all()
+    serializer_class = AdminProductUpdateSerializer
+    permission_classes = [IsAdminUser]
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+
+
+class AdminSommelierCurationListView(generics.ListAPIView):
+    queryset = SommelierCuration.objects.all().order_by('-price')
+    serializer_class = SommelierCurationSerializer
+    permission_classes = [IsAdminUser]
+    pagination_class = None
+
+
+class AdminSommelierCurationUpdateView(generics.UpdateAPIView):
+    """PATCH /api/catalog/admin/curations/<pk>/ — Update curation stock & price."""
+    queryset = SommelierCuration.objects.all()
+    serializer_class = AdminCurationUpdateSerializer
+    permission_classes = [IsAdminUser]
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+
+
+class AdminGiftHamperListView(generics.ListAPIView):
+    queryset = GiftHamper.objects.all().order_by('-created_at')
+    serializer_class = GiftHamperListSerializer
+    permission_classes = [IsAdminUser]
+    pagination_class = None
+
+
+class AdminGiftHamperUpdateView(generics.UpdateAPIView):
+    """PATCH /api/catalog/admin/gifts/<pk>/ — Update hamper stock & price."""
+    queryset = GiftHamper.objects.all()
+    serializer_class = AdminHamperUpdateSerializer
+    permission_classes = [IsAdminUser]
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+
+
+class AdminProductCreateView(generics.CreateAPIView):
+    """POST /api/catalog/admin/products/create/ — Add a new product."""
+    queryset = Product.objects.all()
+    serializer_class = AdminProductCreateSerializer
+    permission_classes = [IsAdminUser]
+
+
+class AdminSommelierCurationCreateView(generics.CreateAPIView):
+    """POST /api/catalog/admin/curations/create/ — Add a new curation."""
+    queryset = SommelierCuration.objects.all()
+    serializer_class = AdminCurationCreateSerializer
+    permission_classes = [IsAdminUser]
+
+
+class AdminGiftHamperCreateView(generics.CreateAPIView):
+    """POST /api/catalog/admin/gifts/create/ — Add a new hamper."""
+    queryset = GiftHamper.objects.all()
+    serializer_class = AdminHamperCreateSerializer
+    permission_classes = [IsAdminUser]
 
 
 @api_view(['GET'])

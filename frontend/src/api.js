@@ -15,9 +15,13 @@ async function apiRequest(endpoint, options = {}) {
     const token = localStorage.getItem('access_token');
 
     const headers = {
-        'Content-Type': 'application/json',
         ...options.headers,
     };
+
+    // Only set Content-Type to application/json if body is not FormData
+    if (!(options.body instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
+    }
 
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
@@ -27,6 +31,11 @@ async function apiRequest(endpoint, options = {}) {
         ...options,
         headers,
     };
+
+    // Stringify body only if it's not FormData and not already a string
+    if (config.body && !(config.body instanceof FormData) && typeof config.body !== 'string') {
+        config.body = JSON.stringify(config.body);
+    }
 
     try {
         const response = await fetch(`${BASE_URL}${endpoint}`, config);
@@ -60,8 +69,9 @@ async function apiRequest(endpoint, options = {}) {
 
 export const api = {
     get: (endpoint, options = {}) => apiRequest(endpoint, { ...options, method: 'GET' }),
-    post: (endpoint, body, options = {}) => apiRequest(endpoint, { ...options, method: 'POST', body: JSON.stringify(body) }),
-    put: (endpoint, body, options = {}) => apiRequest(endpoint, { ...options, method: 'PUT', body: JSON.stringify(body) }),
+    post: (endpoint, body, options = {}) => apiRequest(endpoint, { ...options, method: 'POST', body }),
+    put: (endpoint, body, options = {}) => apiRequest(endpoint, { ...options, method: 'PUT', body }),
+    patch: (endpoint, body, options = {}) => apiRequest(endpoint, { ...options, method: 'PATCH', body }),
     delete: (endpoint, options = {}) => apiRequest(endpoint, { ...options, method: 'DELETE' }),
 };
 

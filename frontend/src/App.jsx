@@ -22,6 +22,27 @@ import AdminDashboard from './pages/Admin/AdminDashboard';
 
 import Profile from './pages/Profile';
 import Invoice from './pages/Invoice';
+import { useAuth } from './context/AuthContext';
+import { Navigate } from 'react-router-dom';
+
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="min-h-screen bg-[#0a0806] flex items-center justify-center"><div className="w-12 h-12 border-4 border-[#F4C430] border-t-transparent rounded-full animate-spin"></div></div>;
+  if (!user || !user.is_staff) return <Navigate to="/login" replace />;
+  return children;
+};
+
+const UserPortalRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+  if (loading) return null;
+  
+  // If an admin tries to access a public route, send them to the sanctuary.
+  if (user?.is_staff && !location.pathname.startsWith('/admin')) {
+    return <Navigate to="/admin" replace />;
+  }
+  return children;
+};
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -29,11 +50,11 @@ function ScrollToTop() {
   return null;
 }
 
-import ArchivistSanctuary from './pages/ArchivistSanctuary';
+// Removed ArchivistSanctuary import
 
 function AppContent() {
   const location = useLocation();
-  const minimalRoutes = ['/admin', '/sanctuary'];
+  const minimalRoutes = ['/admin'];
   const isMinimal = minimalRoutes.some(route => location.pathname.startsWith(route));
 
   return (
@@ -43,23 +64,22 @@ function AppContent() {
       {!isMinimal && <CartDrawer />}
       <main>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/sanctuary" element={<ArchivistSanctuary />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route path="/gifts" element={<Gifts />} />
-          <Route path="/sommelier" element={<Sommelier />} />
-          <Route path="/chai-masala" element={<ChaiMasala />} />
-          <Route path="/estates" element={<Estates />} />
-          <Route path="/stories" element={<Stories />} />
-          <Route path="/rewards" element={<Rewards />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/invoice/:orderId" element={<Invoice />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/premium" element={<Premium />} />
-          <Route path="/reservation" element={<Reservation />} />
+          <Route path="/" element={<UserPortalRoute><Home /></UserPortalRoute>} />
+          <Route path="/menu" element={<UserPortalRoute><Menu /></UserPortalRoute>} />
+          <Route path="/gifts" element={<UserPortalRoute><Gifts /></UserPortalRoute>} />
+          <Route path="/sommelier" element={<UserPortalRoute><Sommelier /></UserPortalRoute>} />
+          <Route path="/chai-masala" element={<UserPortalRoute><ChaiMasala /></UserPortalRoute>} />
+          <Route path="/estates" element={<UserPortalRoute><Estates /></UserPortalRoute>} />
+          <Route path="/stories" element={<UserPortalRoute><Stories /></UserPortalRoute>} />
+          <Route path="/rewards" element={<UserPortalRoute><Rewards /></UserPortalRoute>} />
+          <Route path="/profile" element={<UserPortalRoute><Profile /></UserPortalRoute>} />
+          <Route path="/invoice/:orderId" element={<UserPortalRoute><Invoice /></UserPortalRoute>} />
+          <Route path="/checkout" element={<UserPortalRoute><Checkout /></UserPortalRoute>} />
+          <Route path="/premium" element={<UserPortalRoute><Premium /></UserPortalRoute>} />
+          <Route path="/reservation" element={<UserPortalRoute><Reservation /></UserPortalRoute>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         </Routes>
       </main>
       {!isMinimal && <Footer />}

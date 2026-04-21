@@ -34,6 +34,7 @@ class Product(models.Model):
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     image_url = models.URLField(blank=True, default='')  # For external hosted images
 
+    stock_quantity = models.PositiveIntegerField(default=10)
     is_available = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     origin = models.CharField(max_length=100, blank=True, default='')  # "Darjeeling", "Coorg"
@@ -70,7 +71,11 @@ class SommelierCuration(models.Model):
     features = models.JSONField(default=list)  # ["1x 250g Rare Estate Blend", ...]
     icon = models.CharField(max_length=50, default='workspace_premium')
     badge_text = models.CharField(max_length=50, blank=True, default='')
+    stock_quantity = models.PositiveIntegerField(default=10)
+    image = models.ImageField(upload_to='curations/', blank=True, null=True)
+    image_url = models.URLField(blank=True, default='')
     is_active = models.BooleanField(default=True)
+
 
     class Meta:
         ordering = ['price']
@@ -82,6 +87,13 @@ class SommelierCuration(models.Model):
 
     def __str__(self):
         return f"{self.name} — ₹{self.price}"
+
+    @property
+    def display_image(self):
+        if self.image:
+            return self.image.url
+        return self.image_url
+
 
 
 class GiftHamper(models.Model):
@@ -105,6 +117,7 @@ class GiftHamper(models.Model):
     contents = models.JSONField(default=list)  # ["Zaffrani Chai 200g", "Brass Kulhad Set"]
     is_limited = models.BooleanField(default=False)
     badge_text = models.CharField(max_length=50, blank=True, default='')
+    stock_quantity = models.PositiveIntegerField(default=10)
     is_active = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -119,3 +132,9 @@ class GiftHamper(models.Model):
 
     def __str__(self):
         return f"{self.name} — ₹{self.price}"
+
+    @property
+    def display_image(self):
+        if self.image:
+            return self.image.url
+        return self.image_url

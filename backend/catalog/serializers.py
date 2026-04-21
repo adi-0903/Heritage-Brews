@@ -11,7 +11,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'slug', 'description', 'price', 'image',
             'category', 'category_name', 'is_available', 'is_featured',
-            'origin', 'tags',
+            'origin', 'tags', 'stock_quantity',
         ]
 
     def get_image(self, obj):
@@ -47,9 +47,14 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class SommelierCurationSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = SommelierCuration
         fields = '__all__'
+
+    def get_image(self, obj):
+        return obj.display_image
 
 
 class GiftHamperListSerializer(serializers.ModelSerializer):
@@ -60,15 +65,70 @@ class GiftHamperListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'slug', 'description', 'price', 'image',
             'occasion', 'contents', 'is_limited', 'badge_text',
+            'stock_quantity', 'is_active',
         ]
 
     def get_image(self, obj):
-        if obj.image:
-            return obj.image.url
-        return obj.image_url
+        return obj.display_image
 
 
 class GiftHamperDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = GiftHamper
         fields = '__all__'
+
+
+# ────────────────────────────────────────────────────────────
+# Admin PATCH-only serializers (stock & price management)
+# These are intentionally narrow — only expose mutable fields.
+# Use PATCH (not PUT) so unchanged fields are left untouched.
+# ────────────────────────────────────────────────────────────
+
+class AdminProductUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['price', 'stock_quantity', 'is_available']
+
+
+class AdminCurationUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SommelierCuration
+        fields = ['price', 'stock_quantity', 'is_active']
+
+
+class AdminHamperUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GiftHamper
+        fields = ['price', 'stock_quantity', 'is_active']
+
+
+# ────────────────────────────────────────────────────────────
+# Full Creation Serializers (Admin only)
+# ────────────────────────────────────────────────────────────
+
+class AdminProductCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = [
+            'category', 'name', 'description', 'price', 
+            'image', 'image_url', 'stock_quantity', 'is_available', 
+            'is_featured', 'origin'
+        ]
+
+class AdminCurationCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SommelierCuration
+        fields = [
+            'name', 'description', 'price', 'image', 'image_url', 
+            'stock_quantity', 'is_active', 'badge_text', 
+            'features', 'tagline'
+        ]
+
+class AdminHamperCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GiftHamper
+        fields = [
+            'name', 'description', 'price', 'image', 'image_url', 
+            'occasion', 'contents', 'is_limited', 
+            'badge_text', 'stock_quantity', 'is_active'
+        ]

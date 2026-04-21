@@ -204,16 +204,24 @@ def admin_stats_view(request):
     else:
         occupancy_rate = "0%"
 
-    # 4. Vault Reserves (Total available products in catalog)
-    vault_item_count = Product.objects.filter(is_available=True).count()
+    # 4. Vault Reserves (Total items: Products + Curations + Hampers)
+    from catalog.models import SommelierCuration, GiftHamper
+    product_count = Product.objects.filter(is_available=True).count()
+    curation_count = SommelierCuration.objects.filter(is_active=True).count()
+    hamper_count = GiftHamper.objects.filter(is_active=True).count()
+    vault_item_count = product_count + curation_count + hamper_count
     vault_reserves = f"{vault_item_count} items"
+
+    # 5. Total Registered Patrons (Normal users only, excluding archivists/admins)
+    total_patrons = User.objects.filter(is_staff=False, is_superuser=False).count()
 
     return Response({
         'total_revenue': total_revenue,
         'active_decrees': active_decrees,
         'haveli_occupancy': occupancy_rate,
         'vault_reserves': vault_reserves,
-        'revenue_delta': '+12%', # Placeholder for growth if we had historical data
+        'total_patrons': total_patrons,
+        'revenue_delta': '+12%',
         'occupancy_delta': '+5%',
     })
 
@@ -228,6 +236,6 @@ def admin_users_list_view(request):
         return Response({'error': 'Archivist privileges required.'}, status=status.HTTP_403_FORBIDDEN)
 
     from .serializers import AdminUserSerializer
-    users = User.objects.all().order_by('-date_joined')
+    users = User.objects.filter(is_staff=False, is_superuser=False).order_by('-date_joined')
     serializer = AdminUserSerializer(users, many=True)
     return Response(serializer.data)

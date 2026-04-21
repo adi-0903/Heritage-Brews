@@ -50,7 +50,7 @@ export default function Footer() {
                     <h3 class="text-[#F4C430] font-bold uppercase tracking-[0.2em] text-xs">Services</h3>
                     <div class="flex flex-col space-y-4">
                         <a class="text-[#fcf9ee]/70 hover:text-[#F4C430] hover:translate-x-1 transition-all duration-300" href="/reservation">Book a Table</a>
-                        <a class="text-[#fcf9ee]/70 hover:text-[#F4C430] hover:translate-x-1 transition-all duration-300" href="/sommelier">Tea Subscription</a>
+                        <a class="text-[#fcf9ee]/70 hover:text-[#F4C430] hover:translate-x-1 transition-all duration-300" href="/sommelier">Sommelier Curation</a>
                         <a class="text-[#fcf9ee]/70 hover:text-[#F4C430] hover:translate-x-1 transition-all duration-300" href="/rewards">Loyalty Program</a>
                         <a class="text-[#fcf9ee]/70 hover:text-[#F4C430] hover:translate-x-1 transition-all duration-300" href="/stories">Chai Stories</a>
                     </div>

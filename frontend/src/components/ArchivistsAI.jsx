@@ -8,7 +8,7 @@ export default function ArchivistsAI() {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [message, setMessage] = useState('');
     const [history, setHistory] = useState([
-        { role: 'model', parts: [{ text: "Greetings, Benefactor of the Flushes. The sanctuary is unsealed. I am The Archivist. Your lineage has been inscribed within these hallowed halls for generations. How shall we curate your legacy today? The vintage of knowledge is ripe for the decanting." }] }
+        { role: 'model', parts: [{ text: "Greetings, Benefactor of the Flushes. I am the Estate Sommelier. My sanctuary is unsealed for you. How shall we curate your legacy today? The vintage of knowledge is ripe for the decanting." }] }
     ]);
     const [loading, setLoading] = useState(false);
     const [confirmation, setConfirmation] = useState(null);
@@ -221,7 +221,7 @@ export default function ArchivistsAI() {
                             {/* Cinematic Header */}
                             <div className="px-12 py-12 flex justify-between items-start relative z-20">
                                 <div className="flex flex-col">
-                                    <h2 className="text-[#F4C430] font-headline text-6xl tracking-[0.2em] font-black uppercase drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]">The Imperial Sanctuary</h2>
+                                    <h2 className="text-[#F4C430] font-headline text-6xl tracking-[0.2em] font-black uppercase drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]">The Sommelier's Sanctuary</h2>
                                     <div className="flex items-center gap-4 mt-2">
                                         <span className="w-12 h-[1px] bg-[#F4C430]/40" />
                                         <p className="text-[#f5e6cc]/40 text-xs uppercase tracking-[0.8em] font-sans italic">Custodians of the Heirloom Lineage</p>
@@ -267,7 +267,7 @@ export default function ArchivistsAI() {
                                             animate={{ opacity: 0.5 }}
                                             className="text-[#f5e6cc] italic text-2xl text-center font-headline"
                                         >
-                                            The Archivist is leafing through the scrolls...
+                                            The Sommelier is leafing through the scrolls...
                                         </motion.div>
                                     )}
                                     <div ref={chatEndRef} />
@@ -399,7 +399,7 @@ export default function ArchivistsAI() {
                         whileHover={{ opacity: 1, x: 0 }}
                         className="absolute right-full mr-6 top-1/2 -translate-y-1/2 bg-[#503f00] text-[#fff8f2] px-8 py-3 whitespace-nowrap text-[12px] font-black tracking-[0.5em] uppercase shadow-2xl pointer-events-none border-l-4 border-[#F4C430]"
                     >
-                        Enter The Sanctuary
+                        Consult the Sommelier
                     </motion.div>
                 </div>
             </motion.div>

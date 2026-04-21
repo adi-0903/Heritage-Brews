@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
+import ArchivistsAI from '../components/ArchivistsAI';
 
 export default function Sommelier() {
     const [plans, setPlans] = useState([]);
@@ -124,6 +125,7 @@ export default function Sommelier() {
 
     return (
         <main className="bg-[#120e0a] pt-16 relative min-h-screen">
+            <ArchivistsAI />
             {/* ... styles remain same ... */}
             <style>{`
                 .material-symbols-outlined {
@@ -146,6 +148,10 @@ export default function Sommelier() {
                     background-color: rgba(18, 14, 10, 0.60);
                 }
                 .gold-glow { text-shadow: 0 0 30px rgba(244,196,48,0.4); }
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(100%); }
+                }
             `}</style>
             
             {/* Hero Section */}
@@ -183,15 +189,18 @@ export default function Sommelier() {
                             className={`group relative bg-[#1c1511] border border-[#F4C430]/15 flex flex-col ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-stretch overflow-hidden transition-all duration-700 hover:border-[#F4C430]/40 hover:shadow-[0_0_100px_rgba(244,196,48,0.05)]`}
                         >
                             {/* The Visual Wing (40%) */}
-                            <div className="w-full md:w-[45%] relative overflow-hidden bg-[#16100d]">
-                                {plan.image && (
-                                    <div className="absolute inset-0 z-0">
-                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#1c1511] z-10 hidden md:block"></div>
-                                        <img 
-                                            src={plan.image} 
-                                            alt={plan.name} 
-                                            className="w-full h-full object-cover grayscale-[0.5] group-hover:grayscale-0 transition-all duration-[3000ms] scale-105 group-hover:scale-110"
-                                        />
+                            <div className={`w-full md:w-[45%] relative group overflow-hidden ${plan.stock_quantity === 0 ? 'grayscale brightness-[0.05]' : ''}`}>
+                                <img 
+                                    src={plan.image || '/images/silver_brass_box.png'} 
+                                    alt={plan.name}
+                                    className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-110"
+                                />
+                                {plan.stock_quantity === 0 && (
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/40 backdrop-blur-[1px]">
+                                        <div className="bg-black/90 border-y border-[#F4C430]/40 px-12 py-6 transform -rotate-12 shadow-[0_0_50px_rgba(0,0,0,1)] flex flex-col items-center">
+                                            <span className="text-[#F4C430] uppercase tracking-[1em] text-xs font-black">Archive Sealed</span>
+                                            <span className="text-gray-600 text-[8px] uppercase tracking-[0.5em] mt-2">Reserve Depleted</span>
+                                        </div>
                                     </div>
                                 )}
                                 <div className="absolute inset-0 border-[20px] border-[#1c1511] z-20 pointer-events-none"></div>
@@ -200,27 +209,37 @@ export default function Sommelier() {
 
                             {/* The Descriptive Wing (55%) */}
                             <div className="w-full md:w-[55%] p-16 flex flex-col justify-center relative z-20">
-                                {plan.badge_text && (
+                                {plan.stock_quantity === 0 ? (
+                                    <div className="absolute top-8 right-8">
+                                        <span className="material-symbols-outlined text-red-500/10 text-8xl animate-pulse">lock</span>
+                                    </div>
+                                ) : plan.badge_text && (
                                     <div className="inline-block self-start mb-8 bg-[#F4C430] text-[#1c1511] text-[10px] font-bold px-6 py-1.5 uppercase tracking-[0.4em]">
                                         {plan.badge_text}
                                     </div>
                                 )}
                                 
                                 <div className="mb-12">
-                                    <h3 className="font-headline text-5xl text-[#e5e2d8] font-bold uppercase tracking-[0.2em] mb-4">{plan.name}</h3>
+                                    <h3 className={`font-headline text-5xl font-bold uppercase tracking-[0.2em] mb-4 transition-colors duration-1000 ${plan.stock_quantity === 0 ? 'text-[#e5e2d8]/20' : 'text-[#e5e2d8]'}`}>
+                                        {plan.name}
+                                    </h3>
                                     <div className="flex items-center gap-4">
-                                        <div className="h-[1px] w-12 bg-[#F4C430]/40"></div>
-                                        <p className="text-[#F4C430]/90 italic font-serif text-xl tracking-wide">{plan.tagline || 'The Masterclass Box'}</p>
+                                        <div className={`h-[1px] w-12 transition-colors duration-1000 ${plan.stock_quantity === 0 ? 'bg-[#F4C430]/10' : 'bg-[#F4C430]/40'}`}></div>
+                                        <p className={`italic font-serif text-xl tracking-wide transition-colors duration-1000 ${plan.stock_quantity === 0 ? 'text-[#F4C430]/20' : 'text-[#F4C430]/90'}`}>
+                                            {plan.tagline || 'The Masterclass Box'}
+                                        </p>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mb-16">
                                     {plan.features?.map((feature, i) => (
                                         <div key={i} className="flex items-start gap-4 group/item">
-                                            <span className="material-symbols-outlined text-[#F4C430]/60 text-sm mt-1 transition-transform group-hover/item:scale-150 duration-500">
-                                                verified
+                                            <span className={`material-symbols-outlined text-sm mt-1 transition-all duration-1000 ${plan.stock_quantity === 0 ? 'text-red-500/10' : 'text-[#F4C430]/60 group-hover/item:scale-150'}`}>
+                                                {plan.stock_quantity === 0 ? 'lock' : 'verified'}
                                             </span>
-                                            <p className="text-[#d1cec3]/70 font-serif text-base tracking-wide leading-relaxed">{feature}</p>
+                                            <p className={`font-serif text-base tracking-wide leading-relaxed transition-colors duration-1000 ${plan.stock_quantity === 0 ? 'text-[#d1cec3]/10' : 'text-[#d1cec3]/70'}`}>
+                                                {feature}
+                                            </p>
                                         </div>
                                     ))}
                                 </div>
@@ -230,27 +249,50 @@ export default function Sommelier() {
                                         {activeMembership && activeMembership.discount_percentage ? (
                                             <>
                                                 <div className="flex items-center gap-3 mb-1">
-                                                    <span className="text-[#d1cec3]/40 line-through text-2xl font-serif">₹{plan.price?.toLocaleString()}</span>
-                                                    <span className="bg-[#F4C430]/10 text-[#F4C430] text-[9px] px-2 py-0.5 border border-[#F4C430]/20 tracking-[0.2em] font-bold">LINEAGE REBATE</span>
+                                                    <span className={`line-through text-2xl font-serif transition-colors duration-1000 ${plan.stock_quantity === 0 ? 'text-[#d1cec3]/10' : 'text-[#d1cec3]/40'}`}>
+                                                        ₹{plan.price?.toLocaleString()}
+                                                    </span>
+                                                    {plan.stock_quantity > 0 && (
+                                                        <span className="bg-[#F4C430]/10 text-[#F4C430] text-[9px] px-2 py-0.5 border border-[#F4C430]/20 tracking-[0.2em] font-bold">LINEAGE REBATE</span>
+                                                    )}
                                                 </div>
-                                                <div className="text-[#F4C430] font-headline text-6xl font-bold tracking-tighter">
+                                                <div className={`font-headline text-6xl font-bold tracking-tighter transition-colors duration-1000 ${plan.stock_quantity === 0 ? 'text-[#F4C430]/10' : 'text-[#F4C430]'}`}>
                                                     ₹{calculateLineagePrice(plan.price).toLocaleString()}
                                                 </div>
                                             </>
                                         ) : (
-                                            <div className="text-[#F4C430] font-headline text-6xl font-bold tracking-tighter">
+                                            <div className={`font-headline text-6xl font-bold tracking-tighter transition-colors duration-1000 ${plan.stock_quantity === 0 ? 'text-[#F4C430]/10' : 'text-[#F4C430]'}`}>
                                                 ₹{plan.price?.toLocaleString()}
                                             </div>
                                         )}
-                                        <div className="text-[#F4C430]/40 text-[10px] uppercase tracking-[0.5em] font-medium font-headline mt-1">Commission Fee</div>
+                                        <div className={`text-[10px] uppercase tracking-[0.5em] font-medium font-headline mt-1 transition-colors duration-1000 ${plan.stock_quantity === 0 ? 'text-[#F4C430]/10' : 'text-[#F4C430]/40'}`}>
+                                            Commission Fee
+                                        </div>
                                     </div>
 
                                     <button 
                                         onClick={() => handleAcquire(plan)}
-                                        className="flex-grow w-full md:w-auto px-16 py-6 bg-transparent border border-[#F4C430]/30 text-[#F4C430] uppercase tracking-[0.5em] text-xs font-bold hover:bg-[#F4C430] hover:text-[#1c1511] transition-all duration-700 relative overflow-hidden group/btn shadow-xl"
+                                        disabled={plan.stock_quantity === 0}
+                                        className={`flex-grow w-full md:w-auto px-16 py-6 border uppercase tracking-[0.5em] text-xs font-bold transition-all duration-700 relative overflow-hidden group/btn shadow-xl ${
+                                            plan.stock_quantity === 0
+                                            ? 'bg-red-950/80 border-red-500 text-white cursor-not-allowed animate-pulse shadow-[0_0_30px_rgba(239,68,68,0.2)]'
+                                            : 'bg-transparent border-[#F4C430]/30 text-[#F4C430] hover:bg-[#F4C430] hover:text-[#1c1511]'
+                                        }`}
                                     >
-                                        <span className="relative z-10 transition-transform duration-500 inline-block group-hover/btn:translate-x-2">Acquire Masterclass</span>
-                                        <div className="absolute inset-0 bg-[#F4C430] -translate-x-full group-hover/btn:translate-x-0 transition-transform duration-700 ease-out"></div>
+                                        {plan.stock_quantity === 0 && (
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]"></div>
+                                        )}
+                                        <span className="relative z-10 transition-transform duration-500 inline-block group-hover/btn:translate-x-2 flex items-center justify-center gap-3">
+                                            {plan.stock_quantity === 0 ? (
+                                                <>
+                                                    <span className="material-symbols-outlined text-[16px]">lock</span>
+                                                    RESERVE LOCKED
+                                                </>
+                                            ) : 'Acquire Masterclass'}
+                                        </span>
+                                        {plan.stock_quantity > 0 && (
+                                            <div className="absolute inset-0 bg-[#F4C430] -translate-x-full group-hover/btn:translate-x-0 transition-transform duration-700 ease-out"></div>
+                                        )}
                                     </button>
                                 </div>
                             </div>

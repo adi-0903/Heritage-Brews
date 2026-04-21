@@ -47,6 +47,10 @@ export default function Gifts() {
                     outline: 4px solid #f1eee3;
                     outline-offset: -8px;
                 }
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(100%); }
+                }
             `}</style>
             
             {/* Hero Section */}
@@ -92,24 +96,59 @@ export default function Gifts() {
                             {hampers.map(hamper => (
                                 <div key={hamper.id} className="bg-[#fcf9ee] flex flex-col h-full hamper-card-border group">
                                     <div className="relative h-64 overflow-hidden">
-                                        <img className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src={hamper.image || '/images/brass_tea_canister.png'} alt={hamper.name} />
-                                        {hamper.is_limited && (
-                                            <div className="absolute top-4 left-4 bg-[#F4C430] text-[#410000] text-[10px] font-bold uppercase tracking-widest px-3 py-1">Limited Edition</div>
+                                        <img 
+                                            src={hamper.image || hamper.image_url} 
+                                            alt={hamper.name}
+                                            className={`w-full h-full object-cover transition-all duration-1000 group-hover:scale-110 ${
+                                                hamper.stock_quantity === 0 ? 'grayscale brightness-[0.05] contrast-[1.2]' : ''
+                                            }`}
+                                        />
+                                        <div className="absolute top-4 right-4 z-10">
+                                            <span className={`px-4 py-1 text-[10px] uppercase tracking-[0.2em] font-bold shadow-md ${
+                                                hamper.stock_quantity === 0
+                                                ? 'bg-black border border-white/20 text-white'
+                                                : 'bg-white text-[#890000]'
+                                            }`}>
+                                                {hamper.stock_quantity === 0 ? 'Sealed' : hamper.occasion}
+                                            </span>
+                                        </div>
+                                        {hamper.stock_quantity === 0 && (
+                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 bg-black/40 backdrop-blur-[1px]">
+                                                <div className="bg-black/90 border-y border-[#F4C430]/40 px-8 py-3 transform rotate-3 shadow-[0_0_40px_rgba(0,0,0,1)] flex flex-col items-center">
+                                                    <span className="text-[#F4C430] uppercase tracking-[0.6em] text-xs font-black">Archive Sealed</span>
+                                                    <span className="text-gray-500 text-[8px] uppercase tracking-[0.4em] mt-1">Reserve Depleted</span>
+                                                </div>
+                                            </div>
                                         )}
                                     </div>
-                                    <div className="p-8 flex flex-col flex-grow">
+                                    <div className="p-8">
                                         <div className="flex justify-between items-start mb-4">
-                                            <h3 className="text-2xl font-headline font-bold text-[#890000]">{hamper.name}</h3>
-                                            <span className="text-xl font-headline font-bold text-[#7b5800]">₹{hamper.price}</span>
+                                            <h3 className={`font-headline text-2xl font-bold uppercase tracking-tight transition-colors duration-700 ${hamper.stock_quantity === 0 ? 'text-gray-400' : 'text-[#2a2a2a]'}`}>
+                                                {hamper.name}
+                                            </h3>
+                                            <span className={`font-headline text-xl font-bold transition-colors duration-700 ${hamper.stock_quantity === 0 ? 'text-red-900/30' : 'text-[#890000]'}`}>
+                                                ₹{hamper.price}
+                                            </span>
                                         </div>
-                                        <p className="text-[#5c4a36] font-body text-sm leading-relaxed flex-grow italic mb-6">
+                                        <p className={`text-gray-600 text-sm mb-6 line-clamp-2 leading-relaxed transition-colors duration-700 ${hamper.stock_quantity === 0 ? 'text-gray-300' : ''}`}>
                                             {hamper.description}
                                         </p>
                                         <button 
                                             onClick={() => addItem({...hamper, type: 'hamper'})}
-                                            className="w-full bg-[#890000] text-white py-4 font-headline text-lg tracking-wide hover:bg-[#ac2014] transition-all flex items-center justify-center gap-2 group-hover:shadow-lg"
+                                            disabled={hamper.stock_quantity === 0}
+                                            className={`w-full py-4 font-headline text-lg tracking-wide transition-all flex items-center justify-center gap-2 relative overflow-hidden ${
+                                                hamper.stock_quantity === 0
+                                                ? 'bg-red-900 text-white cursor-not-allowed border border-red-500 animate-pulse'
+                                                : 'bg-[#890000] text-white hover:bg-[#ac2014] group-hover:shadow-lg'
+                                            }`}
                                         >
-                                            <span className="material-symbols-outlined text-white text-sm">shopping_cart</span> Add to Cart
+                                            {hamper.stock_quantity === 0 && (
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]"></div>
+                                            )}
+                                            <span className="material-symbols-outlined text-sm">
+                                                {hamper.stock_quantity === 0 ? 'lock' : 'shopping_cart'}
+                                            </span> 
+                                            {hamper.stock_quantity === 0 ? 'GIFT VAULT SEALED' : 'Add to Cart'}
                                         </button>
                                     </div>
                                 </div>
