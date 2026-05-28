@@ -17,7 +17,21 @@ const ArchivistSanctuary = () => {
     const [showWritingDesk, setShowWritingDesk] = useState(false);
     const chatEndRef = useRef(null);
     const inputRef = useRef(null);
-    const { addToCart } = useCart();
+    const { addItem } = useCart();
+    const [products, setProducts] = useState([]);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const data = await api.get('catalog/products/');
+                const fetchedProducts = Array.isArray(data) ? data : (data.results || []);
+                setProducts(fetchedProducts);
+            } catch (err) {
+                console.error("Failed to fetch products for Archivist Sanctuary:", err);
+            }
+        };
+        fetchProducts();
+    }, []);
 
     const scrollToBottom = () => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -39,11 +53,18 @@ const ArchivistSanctuary = () => {
         let cleanedText = text;
 
         while ((match = commandRegex.exec(text)) !== null) {
-            const productId = match[1];
-            // Since we don't have the full product object here, we assume the AI only picks valid items
-            // In a real scenario, we'd fetch product details or pass the catalog to the frontend too
-            addToCart({ id: parseInt(productId), name: "Archival Selection" });
-            setConfirmation("Decree Secured: Item added to your Imperial Basket.");
+            const productId = parseInt(match[1]);
+            const product = products.find(p => p.id === productId);
+            
+            if (product) {
+                addItem(product);
+                setConfirmation(`Decree Secured: ${product.name} added to your Imperial Basket.`);
+            } else {
+                // Fallback if not found in catalog yet
+                const fallbackItem = { id: productId, name: "Archival Selection", price: 1500 };
+                addItem(fallbackItem);
+                setConfirmation("Decree Secured: Item added to your Imperial Basket.");
+            }
             setTimeout(() => setConfirmation(''), 5000);
             cleanedText = cleanedText.replace(match[0], '');
         }
@@ -66,7 +87,7 @@ const ArchivistSanctuary = () => {
                 history: history 
             });
             
-            let responseText = res.data.response;
+            let responseText = res.response;
             const processedText = processAutonomousCommands(responseText);
             
             setHistory(prev => [...prev, { role: 'model', parts: [{ text: processedText }] }]);

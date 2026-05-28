@@ -13,8 +13,22 @@ export default function ArchivistsAI() {
     const [loading, setLoading] = useState(false);
     const [confirmation, setConfirmation] = useState(null);
     const [showWritingDesk, setShowWritingDesk] = useState(false);
-    const { addToCart, products } = useCart();
+    const { addItem } = useCart();
+    const [products, setProducts] = useState([]);
     const chatEndRef = useRef(null);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const data = await api.get('catalog/products/');
+                const fetchedProducts = Array.isArray(data) ? data : (data.results || []);
+                setProducts(fetchedProducts);
+            } catch (err) {
+                console.error("Failed to fetch products for Archivist AI:", err);
+            }
+        };
+        fetchProducts();
+    }, []);
     const inputRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -40,7 +54,7 @@ export default function ArchivistsAI() {
             const product = products.find(p => p.id === productId);
             
             if (product) {
-                addToCart(product, 1);
+                addItem(product);
                 setConfirmation(`Sanctuary Decree: ${product.name} Secured.`);
                 setTimeout(() => setConfirmation(null), 4000);
             }
@@ -69,7 +83,7 @@ export default function ArchivistsAI() {
                 history: history 
             });
             
-            let responseText = res.data.response;
+            let responseText = res.response;
             responseText = processAutonomousCommands(responseText);
             
             setHistory(prev => [...prev, { role: 'model', parts: [{ text: responseText }] }]);
@@ -89,7 +103,7 @@ export default function ArchivistsAI() {
                 @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&display=swap');
                 
                 .sanctuary-backdrop {
-                    background: url("/C:/Users/HP/.gemini/antigravity/brain/f666601a-334c-479b-a1cf-2917e236bee4/imperial_sanctuary_backdrop_1775990028477.png");
+                    background: url("/images/imperial_sanctuary_backdrop.png");
                     background-size: cover;
                     background-position: center;
                     position: absolute;

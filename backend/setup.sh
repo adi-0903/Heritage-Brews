@@ -17,7 +17,7 @@ python manage.py makemigrations accounts catalog orders reservations blends rewa
 python manage.py migrate
 
 echo "[4/4] Seeding database..."
-python manage.py seed_data
+python manage.py seed_catalog
 
 echo ""
 echo "=========================================="

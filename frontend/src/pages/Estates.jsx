@@ -151,6 +151,30 @@ export default function Estates() {
         }
     };
 
+    const handleAcquireFlagship = () => {
+        if (!selectedEstate) return;
+        
+        const regionName = selectedEstate.id === 'darjeeling' ? 'Darjeeling' : selectedEstate.id === 'assam' ? 'Assam' : 'Nilgiri';
+        const matched = vaultProducts.find(p => 
+            p.estate?.toLowerCase() === regionName.toLowerCase() || 
+            p.origin?.toLowerCase() === regionName.toLowerCase()
+        );
+        
+        if (matched) {
+            handleAcquire(matched);
+        } else {
+            const fallback = {
+                id: `estate_flagship_${selectedEstate.id}`,
+                name: `${selectedEstate.name} "Imperial Reserve"`,
+                price: selectedEstate.id === 'darjeeling' ? 4500 : selectedEstate.id === 'assam' ? 3200 : 3800,
+                image: selectedEstate.image,
+                category: 'Vault Archive'
+            };
+            handleAcquire(fallback);
+        }
+        setSelectedEstate(null);
+    };
+
     const RegistrationGate = () => (
         <div className={`fixed inset-0 z-[300] flex items-center justify-center transition-all duration-700 ${showPremiumModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
             <div className="absolute inset-0 bg-[#0d0a08]/95 backdrop-blur-2xl" onClick={() => setShowPremiumModal(false)}></div>
@@ -552,7 +576,11 @@ export default function Estates() {
                             <span className="font-label text-sm text-[#F4C430] tracking-[0.6em] uppercase mb-6 block font-black">{selectedEstate.location}</span>
                             <h2 className="font-headline text-5xl md:text-7xl text-white uppercase leading-none mb-10">{selectedEstate.name}</h2>
                             <p className="font-serif text-[#dcd4c3] text-xl italic opacity-90 mb-12">{selectedEstate.history}</p>
-                            <button className="w-full py-6 bg-[#F4C430] text-[#120e0a] font-label uppercase text-xs tracking-[0.5em] font-black hover:bg-white transition-all shadow-xl">
+                            <button 
+                                type="button"
+                                onClick={handleAcquireFlagship}
+                                className="w-full py-6 bg-[#F4C430] text-[#120e0a] font-label uppercase text-xs tracking-[0.5em] font-black hover:bg-white transition-all shadow-xl"
+                            >
                                 Secured Batch Acquisition
                             </button>
                         </div>

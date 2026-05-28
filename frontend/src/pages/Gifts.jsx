@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
+import { useNavigate } from 'react-router-dom';
 import api from '../api';
 
 export default function Gifts() {
     const { addItem } = useCart();
+    const navigate = useNavigate();
     const [hampers, setHampers] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -157,7 +159,11 @@ export default function Gifts() {
                     )}
 
                     <div className="mt-20 text-center relative z-10 w-full flex justify-center pb-12">
-                        <button className="px-16 py-5 border-2 border-[#F4C430] text-[#F4C430] bg-[#890000] font-headline text-2xl font-bold hover:bg-[#F4C430] hover:text-[#410000] transition-all duration-300 shadow-[0_0_20px_rgba(244,196,48,0.2)] hover:shadow-[0_0_30px_rgba(244,196,48,0.4)]">
+                        <button 
+                            type="button"
+                            onClick={() => navigate('/chai-masala')}
+                            className="px-16 py-5 border-2 border-[#F4C430] text-[#F4C430] bg-[#890000] font-headline text-2xl font-bold hover:bg-[#F4C430] hover:text-[#410000] transition-all duration-300 shadow-[0_0_20px_rgba(244,196,48,0.2)] hover:shadow-[0_0_30px_rgba(244,196,48,0.4)]"
+                        >
                             Customize Your Hamper
                         </button>
                     </div>

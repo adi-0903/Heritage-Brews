@@ -87,16 +87,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'heritage_brews.wsgi.application'
 
+import sys
 # ──────────────────────────────────────────
 # Database
 # ──────────────────────────────────────────
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+if 'test' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
 
 # ──────────────────────────────────────────
 # Auth & Password Validation

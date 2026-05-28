@@ -1,8 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,700;1,400&family=Montserrat:wght@200;400;700&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 :root {
   --gold: #F4C430;

@@ -14,6 +14,8 @@ from google.auth.transport import requests as google_requests
 from django.utils import timezone
 from django.db.models import Sum
 import os
+from django.conf import settings
+from django.utils.crypto import get_random_string
 
 # Circular import prevention: import inside the view if necessary, 
 # but these are standard model imports.

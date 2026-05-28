@@ -50,7 +50,7 @@ function ScrollToTop() {
   return null;
 }
 
-// Removed ArchivistSanctuary import
+import ArchivistSanctuary from './pages/ArchivistSanctuary';
 
 function AppContent() {
   const location = useLocation();
@@ -71,6 +71,7 @@ function AppContent() {
           <Route path="/chai-masala" element={<UserPortalRoute><ChaiMasala /></UserPortalRoute>} />
           <Route path="/estates" element={<UserPortalRoute><Estates /></UserPortalRoute>} />
           <Route path="/stories" element={<UserPortalRoute><Stories /></UserPortalRoute>} />
+          <Route path="/sanctuary" element={<UserPortalRoute><ArchivistSanctuary /></UserPortalRoute>} />
           <Route path="/rewards" element={<UserPortalRoute><Rewards /></UserPortalRoute>} />
           <Route path="/profile" element={<UserPortalRoute><Profile /></UserPortalRoute>} />
           <Route path="/invoice/:orderId" element={<UserPortalRoute><Invoice /></UserPortalRoute>} />

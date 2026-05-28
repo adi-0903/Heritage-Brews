@@ -9,7 +9,7 @@ export default function Sommelier() {
     const { addItem, toggleCart } = useCart();
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
-    const [activeMembership, setActiveMembership] = useState(null);
+    const activeMembership = user?.profile?.active_membership;
 
     useEffect(() => {
         const fetchCurations = async () => {
@@ -106,8 +106,8 @@ export default function Sommelier() {
 
     const calculateLineagePrice = (originalPrice) => {
         if (!activeMembership || !activeMembership.discount_percentage) return originalPrice;
-        const discount = (originalPrice * activeMembership.discount_percentage) / 100;
-        return originalPrice - discount;
+        const discountRate = parseFloat(activeMembership.discount_percentage) / 100;
+        return originalPrice * (1 - discountRate);
     };
 
     const handleAcquire = (curation) => {

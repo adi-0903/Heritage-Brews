@@ -7,7 +7,7 @@ Usage: python manage.py seed_data
 
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from catalog.models import Category, Product, SubscriptionPlan, GiftHamper
+from catalog.models import Category, Product, GiftHamper
 from blends.models import SpiceOption
 from rewards.models import RewardTier
 from content.models import BlogPost, Estate, Farmer
@@ -21,7 +21,7 @@ class Command(BaseCommand):
 
         self._seed_categories()
         self._seed_products()
-        self._seed_subscriptions()
+        # self._seed_subscriptions() # Obsolete plan model
         self._seed_gift_hampers()
         self._seed_spice_options()
         self._seed_reward_tiers()
@@ -75,42 +75,7 @@ class Command(BaseCommand):
         self.stdout.write(f'  ✓ {len(products)} products created')
 
     def _seed_subscriptions(self):
-        plans = [
-            {
-                'name': 'Silver Tier',
-                'slug': 'silver-tier',
-                'tagline': 'The Seasonal Companion',
-                'price_monthly': 1850,
-                'icon': 'workspace_premium',
-                'is_premium': False,
-                'features': [
-                    '2x 100g Seasonal Teas',
-                    'Tasting Notes Card',
-                    'Free Shipping',
-                    'Monthly Newsletter',
-                ],
-            },
-            {
-                'name': 'Shahi Brass Tier',
-                'slug': 'shahi-brass-tier',
-                'tagline': 'The Connoisseur\'s Archive',
-                'price_monthly': 4200,
-                'icon': 'stars',
-                'is_premium': True,
-                'badge_text': 'Most Popular',
-                'features': [
-                    '4x 100g Premium Single-Origin Teas',
-                    '1x 200g Exclusive Reserve Blend',
-                    'Hand-Etched Brass Canister (Quarterly)',
-                    'Priority Access to Limited Editions',
-                    'Dedicated Sommelier WhatsApp',
-                    'Complimentary Haveli Reservation',
-                ],
-            },
-        ]
-        for plan_data in plans:
-            SubscriptionPlan.objects.get_or_create(slug=plan_data['slug'], defaults=plan_data)
-        self.stdout.write(f'  ✓ {len(plans)} subscription plans created')
+        pass
 
     def _seed_gift_hampers(self):
         hampers = [
