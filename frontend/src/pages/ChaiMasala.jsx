@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api';
 import { useCart } from '../context/CartContext';
@@ -200,7 +200,7 @@ export default function ChaiMasala() {
         ? 'Aromatic' 
         : 'Mild';
 
-    const calculatedTags = useMemo(() => {
+    const calculatedTags = (() => {
         const tags = [];
         if ((intensities['Adrak'] || 0) > 50) tags.push('🌶️ Zesty Heat');
         if ((intensities['Kesar'] || 0) > 25) tags.push('👑 Imperial Gold');
@@ -216,7 +216,7 @@ export default function ChaiMasala() {
         }
 
         return tags.slice(0, 3);
-    }, [intensities, avgIntensity]);
+    })();
 
     if (loadingSpices) {
         return (

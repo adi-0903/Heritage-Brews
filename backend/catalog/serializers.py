@@ -119,7 +119,7 @@ class AdminCurationCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SommelierCuration
         fields = [
-            'name', 'description', 'price', 'image', 'image_url', 
+            'name', 'price', 'image', 'image_url', 
             'stock_quantity', 'is_active', 'badge_text', 
             'features', 'tagline'
         ]

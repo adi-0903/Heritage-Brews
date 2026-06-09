@@ -1,3 +1,4 @@
+/* global process */
 /**
  * Standalone Validation Script for Cart Calculations and Functions
  * File: D:\\Heritage Brews\\frontend\\src\\utils\\cartValidation.test.js
