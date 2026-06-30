@@ -4,7 +4,6 @@ import { CartContext } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
 
-const API_BASE = (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "") : "http://localhost:8000") + "/api/memberships";
 
 export default function Premium() {
     const { user } = useAuth();

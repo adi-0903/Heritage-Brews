@@ -1,0 +1,76 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  darkMode: "class",
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        "on-secondary-container": "#715000",
+        "background": "#fcf9ee",
+        "surface-tint": "#b52619",
+        "outline": "#8c716e",
+        "on-secondary-fixed-variant": "#5d4200",
+        "secondary": "#7b5800",
+        "primary-fixed": "#ffdad4",
+        "error": "#ba1a1a",
+        "on-error": "#ffffff",
+        "on-secondary-fixed": "#271900",
+        "on-primary-container": "#ffc0b6",
+        "on-background": "#1c1c15",
+        "outline-variant": "#e0bfbc",
+        "on-tertiary-fixed-variant": "#59422c",
+        "surface": "#fcf9ee",
+        "surface-container-low": "#f7f4e9",
+        "on-tertiary-container": "#eacaac",
+        "on-secondary": "#ffffff",
+        "on-primary-fixed": "#410000",
+        "inverse-on-surface": "#f4f1e6",
+        "tertiary-fixed-dim": "#e1c1a4",
+        "on-tertiary-fixed": "#291806",
+        "error-container": "#ffdad6",
+        "on-surface-variant": "#58413f",
+        "surface-container": "#f1eee3",
+        "on-tertiary": "#ffffff",
+        "inverse-primary": "#ffb4a8",
+        "inverse-surface": "#31312a",
+        "surface-container-high": "#ebe8dd",
+        "surface-container-highest": "#e5e2d8",
+        "secondary-fixed-dim": "#f7bd48",
+        "tertiary": "#533d27",
+        "secondary-fixed": "#ffdea6",
+        "tertiary-fixed": "#fedcbe",
+        "secondary-container": "#fdc34d",
+        "surface-container-lowest": "#ffffff",
+        "tertiary-container": "#6c543d",
+        "surface-bright": "#fcf9ee",
+        "on-primary-fixed-variant": "#920703",
+        "on-surface": "#1c1c15",
+        "primary-fixed-dim": "#ffb4a8",
+        "surface-variant": "#e5e2d8",
+        "primary": "#890000",
+        "surface-dim": "#dddacf",
+        "primary-container": "#ac2014",
+        "on-primary": "#ffffff",
+        "on-error-container": "#93000a"
+      },
+      borderRadius: {
+        "DEFAULT": "0px",
+        "lg": "0px",
+        "xl": "0px",
+        "full": "9999px"
+      },
+      fontFamily: {
+        "headline": ["Newsreader"],
+        "body": ["Noto Serif"],
+        "label": ["Noto Serif"]
+      }
+    },
+  },
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/container-queries'),
+  ],
+}

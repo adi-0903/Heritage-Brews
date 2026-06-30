@@ -1,7 +1,8 @@
 import os
 import json
 import requests
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 
 # Ensure environment variables are loaded
@@ -87,11 +88,10 @@ AUTONOMOUS AGENCY:
     gemini_api_key = os.getenv('GEMINI_API_KEY')
     if gemini_api_key:
         try:
-            genai.configure(api_key=gemini_api_key)
+            client = genai.Client(api_key=gemini_api_key)
             # Try 1.5 Flash first, then Pro
             for model_name in ["gemini-1.5-flash", "gemini-pro"]:
                 try:
-                    model = genai.GenerativeModel(model_name=model_name)
                     cleaned_history = []
                     if history:
                         for entry in history:
@@ -99,13 +99,19 @@ AUTONOMOUS AGENCY:
                             parts = entry.get('parts', [])
                             if not parts: continue
                             text = parts[0].get('text', '') if isinstance(parts[0], dict) else str(parts[0])
-                            cleaned_history.append({"role": role, "parts": [text]})
+                            cleaned_history.append(
+                                types.Content(
+                                    role=role,
+                                    parts=[types.Part.from_text(text=text)]
+                                )
+                            )
 
                     instructional_msg = f"{PROTOCOL}\n\nPatron Inquiry: {message}"
-                    chat = model.start_chat(history=cleaned_history)
+                    chat = client.chats.create(model=model_name, history=cleaned_history)
                     res = chat.send_message(instructional_msg)
                     return res.text
-                except Exception:
+                except Exception as e:
+                    print(f"Gemini Attempt Error for {model_name}: {str(e)}")
                     continue
         except Exception as e:
             print(f"Gemini Protocol Error: {str(e)}")

@@ -3,7 +3,15 @@
  * Centralized fetch logic with JWT handling.
  */
 
-let BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/';
+let BASE_URL = import.meta.env.VITE_API_URL;
+if (!BASE_URL) {
+    if (import.meta.env.MODE === 'production') {
+        BASE_URL = 'https://heritage-brews.onrender.com/api/';
+    } else {
+        BASE_URL = 'http://127.0.0.1:8000/api/';
+    }
+}
+
 if (!BASE_URL.endsWith('/')) {
     BASE_URL += '/';
 }

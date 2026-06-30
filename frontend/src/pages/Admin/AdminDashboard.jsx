@@ -325,27 +325,6 @@ function AdminDashboard() {
     },
   ];
 
-  const SidebarItem = ({ id, label, icon }) => (
-    <button
-      onClick={() => setActiveTab(id)}
-      className={`flex items-center gap-4 w-full px-6 py-4 transition-all duration-300 group ${
-        activeTab === id ? 'text-[#F4C430]' : 'text-gray-500 hover:text-gray-300'
-      }`}
-    >
-      <div className={`text-xl transition-transform duration-300 ${activeTab === id ? 'scale-110' : 'group-hover:scale-105'}`}>
-        {icon}
-      </div>
-      <span className={`font-medium tracking-wide ${activeTab === id ? 'opacity-100' : 'opacity-80'}`}>
-        {label}
-      </span>
-      {activeTab === id && (
-        <motion.div 
-          layoutId="activeGlow"
-          className="absolute left-0 w-1 h-8 bg-[#F4C430] rounded-r-full shadow-[0_0_15px_#F4C430]"
-        />
-      )}
-    </button>
-  );
 
   const fetchUserOrders = async (userId) => {
     try {
@@ -433,10 +412,10 @@ function AdminDashboard() {
         </div>
 
         <nav className="flex-1 relative">
-          <SidebarItem id="orders" label="Patron Orders" icon={<FiPackage />} />
-          <SidebarItem id="reservations" label="Reservations" icon={<FiCalendar />} />
-          <SidebarItem id="patrons" label="Royal Patrons" icon={<FiUsers />} />
-          <SidebarItem id="vault" label="Vault Catalog" icon={<FiDatabase />} />
+          <SidebarItem id="orders" label="Patron Orders" icon={<FiPackage />} activeTab={activeTab} setActiveTab={setActiveTab} />
+          <SidebarItem id="reservations" label="Reservations" icon={<FiCalendar />} activeTab={activeTab} setActiveTab={setActiveTab} />
+          <SidebarItem id="patrons" label="Royal Patrons" icon={<FiUsers />} activeTab={activeTab} setActiveTab={setActiveTab} />
+          <SidebarItem id="vault" label="Vault Catalog" icon={<FiDatabase />} activeTab={activeTab} setActiveTab={setActiveTab} />
         </nav>
 
         <div className="p-6 border-t border-[#F4C430]/10">
@@ -1169,5 +1148,27 @@ function AdminDashboard() {
     </div>
   );
 }
+
+const SidebarItem = ({ id, label, icon, activeTab, setActiveTab }) => (
+  <button
+    onClick={() => setActiveTab(id)}
+    className={`flex items-center gap-4 w-full px-6 py-4 transition-all duration-300 group relative ${
+      activeTab === id ? 'text-[#F4C430]' : 'text-gray-500 hover:text-gray-300'
+    }`}
+  >
+    <div className={`text-xl transition-transform duration-300 ${activeTab === id ? 'scale-110' : 'group-hover:scale-105'}`}>
+      {icon}
+    </div>
+    <span className={`font-medium tracking-wide ${activeTab === id ? 'opacity-100' : 'opacity-80'}`}>
+      {label}
+    </span>
+    {activeTab === id && (
+      <motion.div 
+        layoutId="activeGlow"
+        className="absolute left-0 w-1 h-8 bg-[#F4C430] rounded-r-full shadow-[0_0_15px_#F4C430]"
+      />
+    )}
+  </button>
+);
 
 export default AdminDashboard;

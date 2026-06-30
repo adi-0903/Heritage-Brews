@@ -11,6 +11,14 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 
+from django.http import HttpResponse
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """Render/Production Health Check Endpoint"""
+    return HttpResponse("Heritage Brews Server is live.", content_type="text/plain", status=200)
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def api_root(request):
@@ -35,6 +43,7 @@ def api_root(request):
 
 
 urlpatterns = [
+    path('', health_check, name='health-check'),
     path('admin/', admin.site.urls),
     path('api/', api_root, name='api-root'),
     path('api/auth/', include('accounts.urls')),
