@@ -1,1 +1,1 @@
-web: gunicorn heritage_brews.wsgi:application
+web: python manage.py migrate && python manage.py seed_data && python manage.py seed_catalog && python populate_memberships.py && gunicorn heritage_brews.wsgi:application
