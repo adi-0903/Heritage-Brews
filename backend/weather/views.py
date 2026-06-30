@@ -34,6 +34,12 @@ class ArchiveImageProxy(View):
 
         return FileResponse(open(file_path, 'rb'), content_type='image/png')
 
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+# Process-level memory cache to handle multi-worker/serverless cold start cache misses
+_WEATHER_MEM_CACHE = {}  # slug -> (timestamp, data)
+
 class WeatherProxyView(APIView):
     permission_classes = [AllowAny]
     
@@ -47,21 +53,38 @@ class WeatherProxyView(APIView):
     def get(self, request):
         api_key = getattr(settings, 'OPENWEATHER_API_KEY', None)
         results = {}
-
-        for slug, coords in self.ESTATES.items():
+        now = time.time()
+        
+        slugs_to_fetch = []
+        for slug in self.ESTATES.keys():
             cache_key = f"weather_{slug}"
             data = cache.get(cache_key)
+            
+            # Fallback to local memory cache if django cache misses (common in serverless/multiprocess)
+            if not data and slug in _WEATHER_MEM_CACHE:
+                cached_time, cached_data = _WEATHER_MEM_CACHE[slug]
+                if now - cached_time < 3600:
+                    data = cached_data
+                    cache.set(cache_key, data, 3600)  # Populate django cache
+            
+            if data:
+                results[slug] = data.copy() if hasattr(data, 'copy') else data
+            else:
+                slugs_to_fetch.append(slug)
 
-            if not data:
+        if slugs_to_fetch:
+            def fetch_weather(slug):
+                coords = self.ESTATES[slug]
                 if api_key:
                     try:
                         clean_api_key = api_key.strip("'\" \t\r\n")
                         url = f"https://api.openweathermap.org/data/2.5/weather?lat={coords['lat']}&lon={coords['lon']}&appid={clean_api_key}&units=metric"
-                        response = requests.get(url, timeout=10)
+                        # Short timeout to avoid blocking thread for too long if OpenWeather is down/slow
+                        response = requests.get(url, timeout=2.5)
                         weather_json = response.json()
                         
                         if response.status_code == 200:
-                            data = {
+                            return {
                                 'temp': round(weather_json['main']['temp']),
                                 'condition': weather_json['weather'][0]['main'],
                                 'description': weather_json['weather'][0]['description'],
@@ -70,27 +93,32 @@ class WeatherProxyView(APIView):
                         else:
                             err_msg = weather_json.get('message', 'Unknown Error')
                             print(f"API Error for {slug}: {err_msg}")
-                            data = self.get_mock_weather(slug)
-                            data['error_reason'] = f"Status {response.status_code}: {err_msg}"
+                            mock_data = self.get_mock_weather(slug)
+                            mock_data['error_reason'] = f"Status {response.status_code}: {err_msg}"
+                            return mock_data
                     except Exception as e:
                         print(f"Weather fetch failed for {slug}: {e}")
-                        data = self.get_mock_weather(slug)
-                        data['error_reason'] = f"Exception: {str(e)}"
+                        mock_data = self.get_mock_weather(slug)
+                        mock_data['error_reason'] = f"Exception: {str(e)}"
+                        return mock_data
                 else:
-                    # Fallback to Mocked Atmosphere if no key exists
-                    data = self.get_mock_weather(slug)
-                    data['error_reason'] = "OPENWEATHER_API_KEY is missing or evaluated to None"
+                    mock_data = self.get_mock_weather(slug)
+                    mock_data['error_reason'] = "OPENWEATHER_API_KEY is missing or evaluated to None"
+                    return mock_data
+
+            with ThreadPoolExecutor(max_workers=len(slugs_to_fetch)) as executor:
+                fetched_results = list(executor.map(fetch_weather, slugs_to_fetch))
                 
-                # Cache for 1 hour to preserve API integrity
-                cache.set(cache_key, data, 3600)
-            
-            results[slug] = data
-            
-            # Privilege Check for Activation
+            for slug, data in zip(slugs_to_fetch, fetched_results):
+                cache.set(f"weather_{slug}", data, 3600)
+                _WEATHER_MEM_CACHE[slug] = (now, data)
+                results[slug] = data.copy() if hasattr(data, 'copy') else data
+
+        # Final Privilege Check for Activation
+        for slug in self.ESTATES.keys():
             if request.user.is_authenticated and hasattr(request.user, 'profile'):
                 membership = request.user.profile.active_membership
                 if membership and 'weather_live' in (membership.feature_keys or []):
-                    # User has live syncing activated
                     results[slug]['is_activated'] = True
                     results[slug]['note'] = "Live Archival Syncing Active"
                 else:

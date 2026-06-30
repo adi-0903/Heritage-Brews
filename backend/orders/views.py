@@ -114,30 +114,38 @@ class OrderListView(APIView):
         orders = Order.objects.filter(user=request.user)
         
         # REGISTRY RECALIBRATION: Audit and correct tokens for the 1:100 Elite Ratio
-        delivered_uncredited = orders.filter(status='delivered', payment_status='paid')
+        from django.db.models import F, IntegerField
+        from django.db.models.functions import Cast
+        
+        delivered_uncredited = orders.filter(
+            status='delivered', 
+            payment_status='paid'
+        ).annotate(
+            expected_tokens=Cast(F('total') / 100, output_field=IntegerField())
+        ).exclude(
+            tokens_earned=F('expected_tokens')
+        )
+        
         for order in delivered_uncredited:
-            expected_tokens = int(order.total / 100)
+            expected_tokens = order.expected_tokens
+            diff = expected_tokens - order.tokens_earned
             
-            # If tokens were never awarded OR if they were awarded at the old ratio
-            if order.tokens_earned != expected_tokens:
-                diff = expected_tokens - order.tokens_earned
-                
-                # Update the order registry
-                Order.objects.filter(pk=order.pk).update(tokens_earned=expected_tokens)
-                
-                # Update the user's treasury balance
-                from accounts.models import UserProfile
-                profile, _ = UserProfile.objects.get_or_create(user=request.user)
-                profile.tea_tokens += diff
-                if profile.tea_tokens < 0: profile.tea_tokens = 0
-                profile.save(update_fields=['tea_tokens'])
-                
-                if hasattr(profile, 'recalculate_tier'):
-                    profile.recalculate_tier()
-                
-                # Synchronize the Transaction manifest
-                from rewards.models import TokenTransaction
-                TokenTransaction.objects.filter(order=order, transaction_type='earn').update(amount=expected_tokens)
+            # Update the order registry
+            Order.objects.filter(pk=order.pk).update(tokens_earned=expected_tokens)
+            
+            # Update the user's treasury balance
+            from accounts.models import UserProfile
+            profile, _ = UserProfile.objects.get_or_create(user=request.user)
+            profile.tea_tokens += diff
+            if profile.tea_tokens < 0: profile.tea_tokens = 0
+            profile.save(update_fields=['tea_tokens'])
+            
+            if hasattr(profile, 'recalculate_tier'):
+                profile.recalculate_tier()
+            
+            # Synchronize the Transaction manifest
+            from rewards.models import TokenTransaction
+            TokenTransaction.objects.filter(order=order, transaction_type='earn').update(amount=expected_tokens)
             
         serializer = OrderSerializer(orders.order_by('-created_at'), many=True)
         return Response(serializer.data)
